@@ -22,7 +22,7 @@ code .
 
 # Afficher le terminal de vscode
 # Créer et activer l'environnement virtuel
-python -m venv venv
+python -m venv .venv
 source venv/bin/activate        # Linux / Mac
 venv\Scripts\activate           # Windows
 

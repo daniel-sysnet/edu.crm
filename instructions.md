@@ -19,13 +19,17 @@ Avant de commencer, assurez-vous d'avoir installé :
 
 ```bash
 # 1. Cloner le dépôt (une seule fois)
-git clone https://github.com/<ORGANISATION>/edu-crm.git
+git clone https://github.com/daniel-sysnet/edu.crm
 
 # 2. Entrer dans le dossier
 cd edu-crm
 
+# Ouvrir le projet avec vs code
+code .
+
+# Afficher le terminal de vscode
 # 3. Créer votre environnement virtuel
-python -m venv venv
+python -m venv .venv
 
 # 4. Activer l'environnement
 # Linux / Mac :
