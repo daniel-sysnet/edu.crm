@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion — Edu.CRM{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5 col-lg-4">
+
+    <div class="card shadow">
+      <div class="card-body p-4">
+
+        <!-- En-tête -->
+        <div class="text-center mb-4">
+          <div style="font-size: 3rem;">🎓</div>
+          <h2 class="fw-bold text-primary mb-0">Edu.CRM</h2>
+          <p class="text-muted">Connectez-vous pour continuer</p>
+        </div>
+
+        <!-- Formulaire de connexion -->
+        <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+
+          <div class="mb-3">
+            <label for="username" class="form-label fw-semibold">
+              👤 Identifiant
+            </label>
+            <input
+              type="text"
+              class="form-control form-control-lg"
+              id="username"
+              name="username"
+              placeholder="Votre identifiant"
+              required
+              autofocus
+            />
+          </div>
+
+          <div class="mb-4">
+            <label for="password" class="form-label fw-semibold">
+              🔒 Mot de passe
+            </label>
+            <input
+              type="password"
+              class="form-control form-control-lg"
+              id="password"
+              name="password"
+              placeholder="Votre mot de passe"
+              required
+            />
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg">
+              Se connecter
+            </button>
+          </div>
+
+        </form>
+
+        <!-- Comptes de test -->
+        <hr class="mt-4" />
+        <p class="text-muted small text-center mb-2">
+          <strong>Comptes de test disponibles :</strong>
+        </p>
+        <table class="table table-sm table-bordered small text-center">
+          <thead class="table-light">
+            <tr><th>Identifiant</th><th>Mot de passe</th><th>Rôle</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>admin</code></td>
+              <td><code>admin123</code></td>
+              <td><span class="badge bg-danger">admin</span></td>
+            </tr>
+            <tr>
+              <td><code>etudiant</code></td>
+              <td><code>etudiant123</code></td>
+              <td><span class="badge bg-primary">etudiant</span></td>
+            </tr>
+            <tr>
+              <td><code>prof</code></td>
+              <td><code>prof123</code></td>
+              <td><span class="badge bg-success">enseignant</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
