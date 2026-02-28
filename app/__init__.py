@@ -1,0 +1,25 @@
+from flask import Flask
+from app.config import Config
+
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+
+    from app.auth.route import auth_bp
+    app.register_blueprint(auth_bp)
+
+    from app.dashboard.route import dashboard_bp
+    app.register_blueprint(dashboard_bp)
+
+    # Enregistrer les blueprints des autres modules (étudiants, enseignants, cours)
+    from app.students.route import students_bp
+    app.register_blueprint(students_bp)
+
+    from app.teachers.route import teachers_bp
+    app.register_blueprint(teachers_bp)
+
+    from app.courses.route import courses_bp
+    app.register_blueprint(courses_bp)
+
+    return app
