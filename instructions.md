@@ -99,8 +99,8 @@ Exemples :
 | `Étudiant-1-Responsable-AUTH-&-Sécurité` | Étudiant 1 |
 | `Étudiant-2-Responsable-STUDENTS` | Étudiant 2 |
 | `Étudiant-3-Responsable-TEACHERS` | Étudiant 3 |
-| `feature/courses-crud` | Étudiant 4 |
-| `feature/dashboard-ui` | Étudiant 5 |
+| `Étudiant-4-Responsable-COURSES` | Étudiant 4 |
+| `fÉtudiant-5-Responsable-Dashboard-&-UI` | Étudiant 5 |
 
 
 ### 4.4. Pousser votre branche et créer une Pull Request
