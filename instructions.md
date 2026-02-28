@@ -96,42 +96,14 @@ Le format est strict :
 Exemples :
 | Branche | Qui |
 |---|---|
-| `feature/auth-login-logout` | Étudiant 1 |
-| `feature/students-crud` | Étudiant 2 |
-| `feature/teachers-crud` | Étudiant 3 |
+| `Étudiant-1-Responsable-AUTH-&-Sécurité` | Étudiant 1 |
+| `Étudiant-2-Responsable-STUDENTS` | Étudiant 2 |
+| `Étudiant-3-Responsable-TEACHERS` | Étudiant 3 |
 | `feature/courses-crud` | Étudiant 4 |
 | `feature/dashboard-ui` | Étudiant 5 |
-| `fix/auth-session-bug` | Étudiant 1 |
-| `setup/project-structure` | Admin |
 
-### 4.4. Faire un commit
 
-```bash
-git add .
-git commit -m "<type>: <description>"
-```
-
-**Types de commit autorisés :**
-
-| Type | Usage |
-|---|---|
-| `feat` | Nouvelle fonctionnalité |
-| `fix` | Correction de bug |
-| `style` | Modification CSS / template (pas de logique) |
-| `refactor` | Restructuration sans changement de comportement |
-| `docs` | Documentation |
-| `setup` | Configuration / structure projet |
-
-**Exemples :**
-```
-feat: ajout formulaire de connexion
-feat: implémentation list_students dans le service
-fix: correction redirect après logout
-style: mise en forme du tableau étudiants
-docs: mise à jour du README
-```
-
-### 4.5. Pousser votre branche et créer une Pull Request
+### 4.4. Pousser votre branche et créer une Pull Request
 
 ```bash
 # Pousser votre branche sur GitHub
@@ -145,21 +117,6 @@ Ensuite sur GitHub :
 4. Donnez un titre clair et une description de ce que vous avez fait
 5. Assignez **l'Admin** comme reviewer
 6. **Ne fusionnez pas vous-même.** C'est l'Admin qui valide et merge.
-
----
-
-## 5. Ce que vous n'avez PAS le droit de faire
-
-| Interdit | Raison |
-|---|---|
-| Commiter sur `main` directement | Risque de casser le projet pour tout le monde |
-| Merger votre propre PR | L'Admin vérifie et valide |
-| Modifier les fichiers d'un autre module sans accord | Chacun est responsable de son module |
-| Commiter `venv/`, `__pycache__/`, `.env` | Fichiers locaux uniquement |
-| Changer `app/config.py`, `app/run.py`, `app/__init__.py` sans accord Admin | Fichiers partagés critiques |
-| Renommer des fonctions de service existantes | Casse le code des autres |
-
----
 
 ## 6. Ajouter une dépendance Python
 
@@ -178,72 +135,3 @@ git commit -m "setup: ajout dépendance <nom-du-package>"
 ```
 
 > Les autres devront faire `pip install -r requirements.txt` après un `git pull`.
-
----
-
-## 7. Structure des fichiers — Où travailler
-
-```
-edu-crm/
-├── app/
-│   ├── __init__.py              ← Admin uniquement
-│   ├── config.py                ← Admin uniquement
-│   ├── run.py                   ← Admin uniquement
-│   ├── auth/
-│   │   ├── __init__.py
-│   │   └── route.py             ← Étudiant 1
-│   ├── students/
-│   │   ├── __init__.py
-│   │   └── route.py             ← Étudiant 2
-│   ├── teachers/
-│   │   ├── __init__.py
-│   │   └── route.py             ← Étudiant 3
-│   ├── courses/
-│   │   ├── __init__.py
-│   │   └── route.py             ← Étudiant 4
-│   ├── dashboard/
-│   │   ├── __init__.py
-│   │   └── route.py             ← Étudiant 5
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── student_service.py   ← Étudiant 2
-│   │   ├── teacher_service.py   ← Étudiant 3
-│   │   └── course_service.py    ← Étudiant 4
-│   └── templates/
-│       ├── base.html            ← Étudiant 5 (Admin valide)
-│       ├── auth/
-│       │   └── login.html       ← Étudiant 1
-│       ├── students/
-│       │   ├── list.html        ← Étudiant 2
-│       │   └── create.html      ← Étudiant 2
-│       ├── teachers/
-│       │   ├── list.html        ← Étudiant 3
-│       │   └── create.html      ← Étudiant 3
-│       ├── courses/
-│       │   ├── list.html        ← Étudiant 4
-│       │   └── create.html      ← Étudiant 4
-│       └── dashboard/
-│           └── index.html       ← Étudiant 5
-├── .gitignore
-├── requirements.txt
-└── README.md
-```
-
----
-
-## 8. Communication
-
-- **Avant de commencer** votre partie : prévenez dans le groupe.
-- **En cas de blocage** : demandez de l'aide, ne restez pas bloqué seul.
-- **Avant de modifier un fichier partagé** : demandez à l'Admin.
-- **Quand votre PR est prête** : signalez-le dans le groupe.
-
----
-
-## 9. Résumé en 5 règles
-
-1. **Toujours pull `main` avant de travailler**
-2. **Une branche par fonctionnalité**
-3. **Des commits clairs et fréquents**
-4. **Pull Request → Review Admin → Merge**
-5. **Ne touchez qu'à vos fichiers**
