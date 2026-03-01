@@ -21,6 +21,7 @@ class StudentService:
         return self.students
     
     def get_student_by_id(self, student_id: int) -> Student:
+        
         for student in self.students:
             if student.id == student_id:
                 return student
