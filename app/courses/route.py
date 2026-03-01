@@ -3,7 +3,6 @@ from app.services.course__service import CourseService
 # On importe les instances déjà créées par tes camarades
 from app.courses.route import student_service # Import depuis le fichier de l'étudiant 2
 from app.teachers.route import teacher_service # Import depuis le fichier de l'étudiant 3
-const
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
 
 # Ton service utilise maintenant les services des autres 
