@@ -16,12 +16,10 @@ def list_students():
 def create_student():
     if request.method == 'POST':
         try:
-            id = len(student_service.list_students()) + 1
             name = request.form.get('name')
             email = request.form.get('email')
             
-            student = Student(id, name, email)
-            student_service.add_student(student)
+            student_service.add_student(name=name, email=email)
             flash(f'Étudiant "{name}" a bien été créé avec succès.', 'success')
             return redirect(url_for('students.list_students'))
         except ValueError as e:

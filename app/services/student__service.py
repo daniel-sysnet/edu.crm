@@ -5,7 +5,9 @@ class StudentService:
     def __init__(self):
         self.students = []
     
-    def add_student(self, student: Student) -> None:
+    def add_student(self, name: str, email: str) -> None:
+        id = self.gen_id()
+        student = Student(id, name, email)
         self.students.append(student)
     
     def delete_student(self, student_id: int) -> bool:
@@ -23,3 +25,6 @@ class StudentService:
             if student.id == student_id:
                 return student
         return None
+    
+    def gen_id(self)->int:
+        return len(self.students) + 1
