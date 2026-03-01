@@ -7,7 +7,6 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 def login_required(f):
-    """Redirige vers /auth/login si l'utilisateur n'est pas connecté."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
@@ -23,10 +22,11 @@ def login():
         return redirect(url_for('dashboard.index'))
 
     if request.method == 'POST':
-        login_input    = request.form.get('login', '').strip()
-        password_input = request.form.get('password', '').strip()
+        login    = request.form.get('login', '').strip()
+        password = request.form.get('password', '').strip()
 
-        user = AuthService.login(login_input, password_input)
+        auth_service = AuthService()
+        user = auth_service.login(login, password)
 
         if user:
             session['user_id'] = user.id
