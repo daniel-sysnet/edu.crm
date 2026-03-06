@@ -1,4 +1,4 @@
-from app.model.user import User
+from app.models.user import User
 
 
 class AuthService:
