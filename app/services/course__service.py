@@ -1,3 +1,4 @@
+from typing import Optional, List
 from app.model.course import Course 
 
 class CourseService:
@@ -6,11 +7,10 @@ class CourseService:
         self.student_service = student_service 
         self.teacher_service = teacher_service 
 
-    def add_course(self, title: str, teacher_id: int) -> tuple:
-        """Crée un objet Course après validation du professeur."""
-        teachers = self.teacher_service.list_teachers()
-        if not any(t.id == teacher_id for t in teachers):
-            return None, "Erreur : Enseignant introuvable."
+    def add_course(self, title: str, teacher_id: int) -> Optional[Course]:
+        teacher = self.teacher_service.get_teacher_by_id(teacher_id)
+        if not teacher:
+            return None
 
         new_course = Course(
             id=self.gen_id(),
@@ -19,31 +19,31 @@ class CourseService:
             student_ids=[]
         )
         self.courses.append(new_course)
-        return new_course, "Cours créé avec succès."
+        return new_course
 
-    def assign_student_to_course(self, course_id: int, student_id: int) -> tuple:
-        """Ajoute un ID étudiant à la liste student_ids du cours[cite: 98]."""
+    def assign_student_to_course(self, course_id: int, student_id: int) -> bool:
         student = self.student_service.get_student_by_id(student_id)
         if not student:
-            return False, "Étudiant introuvable."
+            return False
 
-        for course in self.courses:
-            if course.id == course_id:
-                if student_id not in course.student_ids:
-                    course.student_ids.append(student_id)
-                    return True, f"L'étudiant {student.name} inscrit au cours {course.title}."
-                return False, "L'étudiant est déjà inscrit."
+        course = self.get_course_by_id(course_id)
+        if course and student_id not in course.student_ids:
+            course.student_ids.append(student_id)
+            return True
         
-        return False, "Cours introuvable."
+        return False
 
-    def list_courses(self):
+    def get_course_by_id(self, course_id: int) -> Optional[Course]:
+        return next((c for c in self.courses if c.id == course_id), None)
+
+    def list_courses(self) -> List[Course]:
         return self.courses
 
     def delete_course(self, course_id: int) -> bool:
-        for i, course in enumerate(self.courses):
-            if course.id == course_id:
-                self.courses.pop(i)
-                return True
+        course = self.get_course_by_id(course_id)
+        if course:
+            self.courses.remove(course)
+            return True
         return False
 
     def gen_id(self) -> int:
