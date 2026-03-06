@@ -1,5 +1,5 @@
 from typing import Optional, List
-from app.model.course import Course 
+from app.models.course import Course 
 
 class CourseService:
     def __init__(self, student_service, teacher_service):

@@ -1,5 +1,5 @@
-from app.model.teacher import Teacher
-from app.model.speciality import Speciality
+from app.models.teacher import Teacher
+from app.models.speciality import Speciality
 
 class TeacherService:
     """Service pour gérer les enseignants."""

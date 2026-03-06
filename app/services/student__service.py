@@ -1,4 +1,4 @@
-from app.model.student import Student
+from app.models.student import Student
 
 
 class StudentService:
