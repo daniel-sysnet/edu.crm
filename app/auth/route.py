@@ -5,17 +5,6 @@ from app.services.auth_service import AuthService
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("Vous devez être connecté pour accéder à cette page.", "warning")
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:
