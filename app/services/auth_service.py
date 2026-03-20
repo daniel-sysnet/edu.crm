@@ -5,8 +5,8 @@ class AuthService:
 
     def __init__(self, users: list[User] = None):
         self.users = users if users is not None else [
-            User(1, 'admin@gmail.com', 'admin123'),
-            User(2, 'ism@gmail.com', 'ism123'),
+            User('admin@gmail.com', 'admin123', 'Administrateur'),
+            User('ism@gmail.com', 'ism123', 'Ismail'),
         ]
 
     def login(self, login: str = None, password: str = None):
