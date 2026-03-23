@@ -1,65 +1,35 @@
-from datetime import datetime, date
-from app.models.genre import Genre
+from datetime import datetime
+from app.extensions import db
+from app.models.gender import Gender
 
 
-class Student:
-    counter: int = 0
+# Table d'association Student ↔ Course (Many-to-Many)
+enrollment = db.Table(
+    "enrollment",
+    db.Column("student_id", db.Integer, db.ForeignKey("students.id"), primary_key=True),
+    db.Column("course_id",  db.Integer, db.ForeignKey("courses.id"),  primary_key=True),
+)
 
-    def __init__(self, name: str, email: str, genre: Genre, birthday: date, adresse: str, telephone: str):
-        Student.counter += 1
-        self.__id = Student.counter
-        self.__name = name
-        self.__email = email
-        self.__genre = genre
-        self.__birthday = birthday
-        self.__adresse = adresse
-        self.__telephone = telephone
-        self.__createdAt = datetime.now()
 
-    @property
-    def id(self) -> int:
-        return self.__id
+class Student(db.Model):
+    __tablename__ = "students"
 
-    @property
-    def name(self) -> str:
-        return self.__name
+    id         = db.Column(db.Integer,     primary_key=True)
+    matricule  = db.Column(db.String(20),  unique=True, nullable=False)
+    name       = db.Column(db.String(120), nullable=False)
+    email      = db.Column(db.String(120), unique=True, nullable=False)
+    phone      = db.Column(db.String(20),  nullable=False)
+    gender     = db.Column(db.Enum(Gender), nullable=False)
+    dob        = db.Column(db.Date,        nullable=True)
+    address    = db.Column(db.Text,        nullable=True)
+    created_at = db.Column(db.DateTime,    default=datetime.utcnow, nullable=False)
 
-    @name.setter
-    def name(self, value: str) -> None:
-        self.__name = value
+    # Relation M:N avec Course via table d'association
+    courses = db.relationship("Course", secondary=enrollment, back_populates="students")
 
-    @property
-    def email(self) -> str:
-        return self.__email
+    @staticmethod
+    def generate_matricule(id: int) -> str:
+        return f"STU-{id:03d}"
 
-    @email.setter
-    def email(self, value: str) -> None:
-        self.__email = value
-
-    @property
-    def genre(self) -> Genre:
-        return self.__genre
-
-    @property
-    def birthday(self) -> date:
-        return self.__birthday
-
-    @property
-    def adresse(self) -> str:
-        return self.__adresse
-
-    @adresse.setter
-    def adresse(self, value: str) -> None:
-        self.__adresse = value
-
-    @property
-    def telephone(self) -> str:
-        return self.__telephone
-
-    @telephone.setter
-    def telephone(self, value: str) -> None:
-        self.__telephone = value
-
-    @property
-    def createdAt(self) -> datetime:
-        return self.__createdAt
+    def __repr__(self) -> str:
+        return f"<Student {self.matricule} — {self.name}>"
