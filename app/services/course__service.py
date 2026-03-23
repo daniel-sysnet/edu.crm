@@ -40,6 +40,20 @@ class CourseService:
         for course in self.courses:
             if student_id in course.students_ids:
                 course.students_ids.remove(student_id)
+    
+    def deleteCoursesByTeacher(self, teacher_id: int) -> None:
+        self.courses = [c for c in self.courses if c.teacher_id != teacher_id]
+
+    def getCoursesByTeacher(self, teacher_id: int) -> List[Course]:
+        return [c for c in self.courses if c.teacher_id == teacher_id]
+
+    def countWithoutStudents(self) -> int:
+        return sum(1 for c in self.courses if len(c.students_ids) == 0)
+
+    def getMostPopular(self) -> Optional[Course]:
+        if not self.courses:
+            return None
+        return max(self.courses, key=lambda c: len(c.students_ids))
 
     def countCourses(self) -> int:
         return len(self.courses)
