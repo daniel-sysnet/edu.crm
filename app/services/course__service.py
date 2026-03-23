@@ -33,6 +33,13 @@ class CourseService:
         if query:
             return [c for c in self.courses if query.lower() in c.title.lower()]
         return self.courses
+    def getCoursesByStudent(self, student_id: int) -> List[Course]:
+        return [c for c in self.courses if student_id in c.students_ids]
+
+    def removeStudentFromAllCourses(self, student_id: int):
+        for course in self.courses:
+            if student_id in course.students_ids:
+                course.students_ids.remove(student_id)
 
     def countCourses(self) -> int:
         return len(self.courses)
