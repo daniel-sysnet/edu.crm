@@ -1,75 +1,29 @@
-from datetime import datetime, date
-from app.models.genre import Genre
+from datetime import datetime
+from app.extensions import db
+from app.models.gender     import Gender
 from app.models.speciality import Speciality
 
 
-class Teacher:
-    counter: int = 0
+class Teacher(db.Model):
+    __tablename__ = "teachers"
 
-    def __init__(self, name: str, email: str, specialty: Speciality, genre: Genre, birthday: date, adresse: str, telephone: str):
-        Teacher.counter += 1
-        self.__id = Teacher.counter
-        self.__name = name
-        self.__email = email
-        self.__specialty = specialty
-        self.__genre = genre
-        self.__birthday = birthday
-        self.__adresse = adresse
-        self.__telephone = telephone
-        self.__createdAt = datetime.now()
+    id         = db.Column(db.Integer,          primary_key=True)
+    matricule  = db.Column(db.String(20),        unique=True, nullable=False)
+    name       = db.Column(db.String(120),       nullable=False)
+    email      = db.Column(db.String(120),       unique=True, nullable=False)
+    phone      = db.Column(db.String(20),        nullable=False)
+    gender     = db.Column(db.Enum(Gender),      nullable=False)
+    speciality = db.Column(db.Enum(Speciality),  nullable=False)
+    dob        = db.Column(db.Date,              nullable=True)
+    address    = db.Column(db.Text,              nullable=True)
+    created_at = db.Column(db.DateTime,          default=datetime.utcnow, nullable=False)
 
-    @property
-    def id(self) -> int:
-        return self.__id
+    # Relation One-to-Many avec Course
+    courses = db.relationship("Course", back_populates="teacher")
 
-    @property
-    def name(self) -> str:
-        return self.__name
+    @staticmethod
+    def generate_matricule(id: int) -> str:
+        return f"ENS-{id:03d}"
 
-    @name.setter
-    def name(self, value: str) -> None:
-        self.__name = value
-
-    @property
-    def email(self) -> str:
-        return self.__email
-
-    @email.setter
-    def email(self, value: str) -> None:
-        self.__email = value
-
-    @property
-    def specialty(self) -> Speciality:
-        return self.__specialty
-
-    @specialty.setter
-    def specialty(self, value: Speciality) -> None:
-        self.__specialty = value
-
-    @property
-    def genre(self) -> Genre:
-        return self.__genre
-
-    @property
-    def birthday(self) -> date:
-        return self.__birthday
-
-    @property
-    def adresse(self) -> str:
-        return self.__adresse
-
-    @adresse.setter
-    def adresse(self, value: str) -> None:
-        self.__adresse = value
-
-    @property
-    def telephone(self) -> str:
-        return self.__telephone
-
-    @telephone.setter
-    def telephone(self, value: str) -> None:
-        self.__telephone = value
-
-    @property
-    def createdAt(self) -> datetime:
-        return self.__createdAt
+    def __repr__(self) -> str:
+        return f"<Teacher {self.matricule} — {self.name}>"
