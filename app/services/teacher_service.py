@@ -10,18 +10,17 @@ class TeacherService:
     def __init__(self):
         self.__teachers: list[Teacher] = []
 
-    def addTeacher(self, name: str, email: str, specialty: Speciality,
+    def addTeacher(self, name: str, email: str, speciality: Speciality,
                 gender: Gender, birthday: date,
-                adresse: str, telephone: str) -> Teacher:
-        teacher = Teacher(
-            name=name,
-            email=email,
-            specialty=specialty,
-            gender=gender,
-            birthday=birthday,
-            adresse=adresse,
-            telephone=telephone
-        )
+                address: str, phone: str) -> Teacher:
+        teacher = Teacher()
+        teacher.name = name
+        teacher.email = email
+        teacher.speciality = speciality
+        teacher.gender = gender
+        teacher.dob = birthday
+        teacher.address = address
+        teacher.phone = phone
         self.__teachers.append(teacher)
         return teacher
 
