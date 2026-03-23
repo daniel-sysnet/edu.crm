@@ -1,6 +1,6 @@
 from typing import Optional
 from app.models.teacher import Teacher
-from app.models.genre import Genre
+from app.models.gender import Gender
 from app.models.speciality import Speciality
 from datetime import date
 
@@ -11,13 +11,13 @@ class TeacherService:
         self.__teachers: list[Teacher] = []
 
     def addTeacher(self, name: str, email: str, specialty: Speciality,
-                genre: Genre, birthday: date,
+                gender: Gender, birthday: date,
                 adresse: str, telephone: str) -> Teacher:
         teacher = Teacher(
             name=name,
             email=email,
             specialty=specialty,
-            genre=genre,
+            gender=gender,
             birthday=birthday,
             adresse=adresse,
             telephone=telephone
@@ -31,16 +31,27 @@ class TeacherService:
                 return self.__teachers.pop(i)
         return None
 
-    def listTeachers(self, query: Optional[str] = None,
-                genre: Optional[Genre] = None,
-                specialty: Optional[Speciality] = None) -> list[Teacher]:
+    def listTeachers(
+        self,
+        query: Optional[str] = None,
+        gender: Optional[Gender] = None,
+        speciality: Optional[Speciality] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
+    ) -> list[Teacher]:
         result = self.__teachers
         if query:
             result = [t for t in result if query.lower() in t.name.lower()]
-        if genre:
-            result = [t for t in result if t.genre == genre]
-        if specialty:
-            result = [t for t in result if t.specialty == specialty]
+        if gender:
+            result = [t for t in result if t.gender == gender]
+        if speciality:
+            result = [t for t in result if t.speciality == speciality]
+
+        if per_page is not None and page is not None and page > 0 and per_page > 0:
+            start = (page - 1) * per_page
+            end = start + per_page
+            result = result[start:end]
+
         return result
 
     def getById(self, id: int) -> Optional[Teacher]:
