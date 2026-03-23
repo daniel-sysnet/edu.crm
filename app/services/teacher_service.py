@@ -7,7 +7,7 @@ from datetime import date
 
 class TeacherService:
 
-    def _init_(self):
+    def __init__(self):
         self.__teachers: list[Teacher] = []
 
     def addTeacher(self, name: str, email: str, specialty: Speciality,

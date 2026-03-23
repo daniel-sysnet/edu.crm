@@ -1,13 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.services.teacher_service import TeacherService
-from app.model.genre import Genre
-from app.model.speciality import Speciality
+from app.models.genre import Genre
+from app.models.speciality import Speciality
 from typing import Optional
 from datetime import date
 
 teachers_bp = Blueprint(
     "teachers",
-    _name_,
+    __name__,
     template_folder="../../templates/teachers",
     url_prefix="/teachers",
 )

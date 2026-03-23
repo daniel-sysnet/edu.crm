@@ -1,31 +1,51 @@
-from app.model.student import Student
+from datetime import date
+from typing import Optional
+from app.models.student import Student
+from app.models.genre import Genre
 
 
 class StudentService:
     def __init__(self):
-        self.students = []
-    
-    def add_student(self, name: str, email: str) -> None:
-        id = self.gen_id()
-        student = Student(id, name, email)
-        self.students.append(student)
-    
-    def delete_student(self, student_id: int) -> bool:
-        for i, student in enumerate(self.students):
-            if student.id == student_id:
-                self.students.pop(i)
-                return True
-        return False
-    
-    def list_students(self) -> list:
-        return self.students
-    
-    def get_student_by_id(self, student_id: int) -> Student:
-        
-        for student in self.students:
-            if student.id == student_id:
+        self.__students: list[Student] = []
+
+    def addStudent(self, name: str, email: str, genre: Genre, birthday: date, adresse: str, telephone: str) -> Student:
+        student = Student(
+            name=name,
+            email=email,
+            genre=genre,
+            birthday=birthday,
+            adresse=adresse,
+            telephone=telephone
+        )
+        self.__students.append(student)
+        return student
+
+    def deleteStudent(self, id: int) -> Optional[Student]:
+        student = self.getById(id)
+        if student is None:
+            return None
+        self.__students.remove(student)
+        return student
+
+    def listStudents(self, query: str = None, genre: Genre = None) -> list[Student]:
+        result = self.__students
+        if query:
+            result = [s for s in result if
+                query.lower() in s.name.lower() or
+                query.lower() in s.email.lower()
+            ]
+        if genre:
+            result = [s for s in result if s.genre == genre]
+        return result
+
+    def getById(self, id: int) -> Optional[Student]:
+        for student in self.__students:
+            if student.id == id:
                 return student
         return None
-    
-    def gen_id(self)->int:
-        return len(self.students) + 1
+
+    def countStudents(self) -> int:
+        return len(self.__students)
+
+
+student_service = StudentService()
