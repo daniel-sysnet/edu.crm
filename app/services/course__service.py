@@ -43,13 +43,6 @@ class CourseService:
         """Retourne tous les cours d'un enseignant via SQL[cite: 228, 238]."""
         return Course.query.filter_by(teacher_id=teacher_id).all()
 
-    def deleteCoursesByTeacher(self, teacher_id: int) -> None:
-        """Supprime physiquement les cours d'un enseignant en base[cite: 222, 238]."""
-        courses = self.getCoursesByTeacher(teacher_id)
-        for c in courses:
-            db.session.delete(c)
-        db.session.commit()
-
     def assign_student_to_course(self, course_id: int, student_id: int) -> bool:
         """Inscrit un étudiant (Many-to-Many)[cite: 136, 224]."""
         course = self.get_by_id(course_id)
