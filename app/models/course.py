@@ -10,7 +10,7 @@ class Course(db.Model):
     __tablename__ = "courses"
 
     id         = db.Column(db.Integer,    primary_key=True)
-    code       = db.Column(db.String(20), unique=True, nullable=False, default=_generate_code())
+    code       = db.Column(db.String(20), unique=True, nullable=False, default=_generate_code)
     title      = db.Column(db.String(200), nullable=False)
     teacher_id = db.Column(db.Integer,    db.ForeignKey("teachers.id"), nullable=False)
     created_at = db.Column(db.DateTime,   default=datetime.utcnow, nullable=False)
