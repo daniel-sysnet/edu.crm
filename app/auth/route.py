@@ -1,39 +1,31 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, flash, redirect, url_for
+from app.auth.forms import LoginForm
+from app.auth.session import login_user, get_session_user
 from app.services.auth_service import AuthService
-from app.auth.decorators import login_required
 
-
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 auth_service = AuthService()
 
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard.index'))
-
-    if request.method == 'POST':
-        login    = request.form.get('login', '').strip()
-        password = request.form.get('password', '').strip()
-
-        user = auth_service.login(login, password)
-
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = auth_service.login(form.email.data, form.password.data)
         if user:
-            session['user_id'] = user.id
-            session['login']   = user.login
-            session['name']    = user.name
-            flash(f"Bienvenue {user.name} ! Connexion réussie.", "success")
-            return redirect(url_for('dashboard.index'))
+            login_user(user)
+            flash(f"Bienvenue {user.username} ! Connexion réussie.", "success")
+            return redirect(url_for("dashboard.index"))
         else:
-            flash("Identifiant ou mot de passe incorrect.", "danger")
+            flash("Email ou mot de passe incorrect.", "error")
+    return render_template("auth/login.html", form=form)
 
-    return render_template('auth/login.html')
 
-
-@auth_bp.route('/logout')
+@auth_bp.route("/logout")
 def logout():
-    name = session.get('name', 'Utilisateur')
+    from flask import session
+    username = get_session_user()
     session.clear()
-    flash(f"Au revoir {name}, vous êtes déconnecté.", "info")
-    return redirect(url_for('auth.login'))
+    flash(f"Au revoir, vous êtes déconnecté.", "info")
+    return redirect(url_for("auth.login"))
