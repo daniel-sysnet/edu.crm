@@ -1,59 +1,68 @@
 from typing import Optional, List
-from app.model.course import Course
-from app.model.teacher import Teacher
-from app.model.student import Student
+from app.extensions import db
+from app.models.course import Course
+from app.models.student import Student
 
 class CourseService:
-    def __init__(self):
-        self.courses: List[Course] = []
-
-    def addCourse(self, title: str, teacher: Teacher) -> Course:
-        new_course = Course(title=title, teacher=teacher)
-        self.courses.append(new_course)
+    def add_course(self, title: str, teacher_id: int) -> Course:
+        """Crée un cours et génère son code unique[cite: 123, 219]."""
+        new_course = Course(title=title, teacher_id=teacher_id)
+        db.session.add(new_course)
+        db.session.flush() # Récupère l'ID pour le code
+        new_course.code = Course.generate_code(new_course.id)
+        db.session.commit()
         return new_course
 
-    def deleteCourse(self, id: int) -> Optional[Course]:
-        course = self.getById(id)
-        if course:
-            self.courses.remove(course)
-            return course
-        return None
-
-    def assignStudent(self, course_id: int, student: Student) -> Optional[Course]:
-        course = self.getById(course_id)
-        if course and student.id not in course.students_ids:
-            course.addStudent(student)
-            return course
-        return None
-
-    def getById(self, id: int) -> Optional[Course]:
-        return next((c for c in self.courses if c.id == id), None)
-
-    def listCourses(self, query: str = None) -> List[Course]:
+    def list_courses(self, query: str = None) -> List[Course]:
+        """Retourne la liste filtrée par titre ou code[cite: 226, 238]."""
         if query:
-            return [c for c in self.courses if query.lower() in c.title.lower()]
-        return self.courses
-    def getCoursesByStudent(self, student_id: int) -> List[Course]:
-        return [c for c in self.courses if student_id in c.students_ids]
+            return Course.query.filter(
+                (Course.title.ilike(f'%{query}%')) | 
+                (Course.code.ilike(f'%{query}%'))
+            ).all()
+        return Course.query.all()
 
-    def removeStudentFromAllCourses(self, student_id: int):
-        for course in self.courses:
-            if student_id in course.students_ids:
-                course.students_ids.remove(student_id)
-    
-    def deleteCoursesByTeacher(self, teacher_id: int) -> None:
-        self.courses = [c for c in self.courses if c.teacher_id != teacher_id]
+    def get_by_id(self, id: int) -> Optional[Course]:
+        """Retourne un cours par son id[cite: 227]."""
+        return Course.query.get(id)
+
+    def get_by_code(self, code: str) -> Optional[Course]:
+        """Récupère un cours par son code pour les routes[cite: 126]."""
+        return Course.query.filter_by(code=code).first()
+
+    def delete_course(self, id: int) -> bool:
+        """Supprime un cours de la base[cite: 221]."""
+        course = self.get_by_id(id)
+        if course:
+            db.session.delete(course)
+            db.session.commit()
+            return True
+        return False
 
     def getCoursesByTeacher(self, teacher_id: int) -> List[Course]:
-        return [c for c in self.courses if c.teacher_id == teacher_id]
+        """Retourne tous les cours d'un enseignant via SQL[cite: 228, 238]."""
+        return Course.query.filter_by(teacher_id=teacher_id).all()
+
+    def assign_student_to_course(self, course_id: int, student_id: int) -> bool:
+        """Inscrit un étudiant (Many-to-Many)[cite: 136, 224]."""
+        course = self.get_by_id(course_id)
+        student = Student.query.get(student_id)
+        if course and student and student not in course.students:
+            course.students.append(student)
+            db.session.commit()
+            return True
+        return False
 
     def countWithoutStudents(self) -> int:
-        return sum(1 for c in self.courses if len(c.students_ids) == 0)
+        """Compte les cours sans aucun inscrit[cite: 235, 238]."""
+        # On filtre les cours dont la relation 'students' est vide
+        return Course.query.filter(~Course.students.any()).count()
 
-    def getMostPopular(self) -> Optional[Course]:
-        if not self.courses:
-            return None
-        return max(self.courses, key=lambda c: len(c.students_ids))
+    def get_most_popular(self) -> Optional[Course]:
+        """Retourne le cours avec le plus d'étudiants[cite: 236, 238]."""
+        courses = Course.query.all()
+        return max(courses, key=lambda c: len(c.students)) if courses else None
 
-    def countCourses(self) -> int:
-        return len(self.courses)
+    def count_courses(self) -> int:
+        """Nombre total de cours[cite: 234]."""
+        return Course.query.count()
