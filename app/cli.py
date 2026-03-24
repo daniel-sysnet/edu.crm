@@ -130,12 +130,12 @@ def _nom(genre: Gender) -> str:
     return f"{random.choice(pool)} {random.choice(NOMS_DE_FAMILLE)}"
 
 
-def _email(nom: str, batch: str) -> str:
+def _email(nom: str, batch: str, i:int) -> str:
     import unicodedata
     normalized = unicodedata.normalize("NFD", nom)
     ascii_nom  = normalized.encode("ascii", "ignore").decode("ascii")
     slug = ascii_nom.lower().replace(" ", ".")
-    return f"{slug}.{batch}@educrm.sn"
+    return f"{_slug(nom)}.{batch}.{i:03d}@educrm.sn"
 
 
 # ── Commande CLI ──────────────────────────────────────────────────────────────
@@ -166,13 +166,13 @@ def register_cli(app: Flask) -> None:
 
         # ── Enseignants (20) ──────────────────────────────────────────────────
         teachers = []
-        for _ in range(20):
+        for i in range(20):
             genre = random.choice([Gender.M, Gender.F])
             nom   = _nom(genre)
             t = Teacher(
                 matricule  = _new_matricule_teacher(),
                 name       = nom,
-                email      = _email(nom, batch),
+                email      = _email(nom, batch, i),
                 phone      = _phone(),
                 gender     = genre,
                 speciality = random.choice(list(Speciality)),
@@ -208,13 +208,13 @@ def register_cli(app: Flask) -> None:
 
         # ── Étudiants (300) ──────────────────────────────────────────────────
         students = []
-        for _ in range(300):
+        for i in range(300):
             genre = random.choice([Gender.M, Gender.F])
             nom   = _nom(genre)
             s = Student(
                 matricule = _new_matricule_student(),
                 name      = nom,
-                email     = _email(nom, batch),
+                email     = _email(nom, batch, i),
                 phone     = _phone(),
                 gender    = genre,
                 dob       = date(
