@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, url_for
 from app.models.gender import Gender
 
 students_bp = Blueprint("students", __name__, url_prefix="/students")
@@ -79,7 +79,7 @@ def list():
 
 @students_bp.route("/create", methods=["GET", "POST"])
 def create():
-    from app.students.forms import StudentForm
+    from app.students.form import StudentForm
     from flask import current_app, flash, redirect
     form = StudentForm()
     if form.validate_on_submit():

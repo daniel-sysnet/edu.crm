@@ -8,8 +8,6 @@ class CourseService:
         """Crée un cours et génère son code unique[cite: 123, 219]."""
         new_course = Course(title=title, teacher_id=teacher_id)
         db.session.add(new_course)
-        db.session.flush() # Récupère l'ID pour le code
-        new_course.code = Course.generate_code(new_course.id)
         db.session.commit()
         return new_course
 

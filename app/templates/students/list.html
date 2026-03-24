@@ -90,7 +90,7 @@
                         {# Avatar + Nom #}
                         <td class="px-4 py-4">
                             <div class="flex items-center gap-3">
-                                {{ avatar(s.name, s.get('photo_url', ''), size="w-9 h-9", text_size="text-sm") }}
+                                {{ avatar(s.name, '', size="w-9 h-9", text_size="text-sm") }}
                                 <span class="text-sm font-semibold text-ink font-body">{{ s.name }}</span>
                             </div>
                         </td>
@@ -133,7 +133,7 @@
                                     </button>
                                 </form>
                                 {# Détail #}
-                                <a href="{{ url_for('students.detail', id=s.id) }}"
+                                <a href="{{ url_for('students.detail', mat=s.matricule) }}"
                                    class="flex items-center justify-center w-8 h-8 rounded
                                           text-slate-400 hover:bg-slate-100 transition-colors"
                                    title="Voir le détail">
