@@ -1,17 +1,15 @@
+from typing import List, Optional
 from datetime import date
-from typing import Optional
 from app.models.student import Student
 from app.models.gender import Genre
-
+from app.extensions import db
+from sqlalchemy import desc
 
 class StudentService:
-    def __init__(self):
-        self.__students: list[Student] = []
-        self.__next_id = 1
-
-    def addStudent(self, name: str, email: str, genre: Genre, birthday: date, adresse: str, telephone: str) -> Student:
+    def addStudent(self, name: str, email: str, genre: Genre, birthday: date, 
+                   adresse: str, telephone: str) -> Student:
+        """Crée et ajoute un étudiant en base de données[cite: 181, 189]."""
         student = Student(
-            id=self.__next_id,
             name=name,
             email=email,
             genre=genre,
@@ -19,54 +17,42 @@ class StudentService:
             adresse=adresse,
             telephone=telephone
         )
-        self.__students.append(student)
-        self.__next_id += 1
+        db.session.add(student)
+        db.session.commit()
         return student
 
-    def deleteStudent(self, matricule: str) -> Optional[Student]:
-        student = self.getByMatricule(matricule)
-        if student is None:
-            return None
-        self.__students.remove(student)
+    def deleteStudent(self, id: int) -> Optional[Student]:
+        """Supprime un étudiant par son ID[cite: 182, 189]."""
+        student = Student.query.get(id)
+        if student:
+            db.session.delete(student)
+            db.session.commit()
         return student
 
-    def updateStudent(self, matricule: str, name: str, email: str, genre: Genre, birthday: date, adresse: str, telephone: str) -> Optional[Student]:
-        student = self.getByMatricule(matricule)
-        if student is None:
-            return None
-
-        student.name = name
-        student.email = email
-        student.genre = genre
-        student.birthday = birthday
-        student.adresse = adresse
-        student.telephone = telephone
-
-        return student
-
-    def listStudents(self, query: str = None, genre: Genre = None) -> list[Student]:
-        result = self.__students
-
+    def listStudents(self, query: str = None, genre: Genre = None) -> List[Student]:
+        """Retourne la liste filtrée et triée par les plus récents[cite: 183, 184]."""
+        stmt = Student.query
+        
         if query:
-            result = [s for s in result if
-                query.lower() in s.name.lower() or
-                query.lower() in s.email.lower() or
-                query.lower() in s.matricule.lower()
-            ]
-
+            search = f"%{query}%"
+            stmt = stmt.filter(
+                (Student.name.ilike(search)) | 
+                (Student.email.ilike(search))
+            )
+            
         if genre:
-            result = [s for s in result if s.genre == genre]
+            stmt = stmt.filter(Student.genre == genre)
+            
+        # Tri par les plus récents (ID décroissant)
+        return stmt.order_by(desc(Student.id)).all()
 
-        return result
-
-    def getByMatricule(self, matricule: str) -> Optional[Student]:
-        for student in self.__students:
-            if student.matricule == matricule:
-                return student
-        return None
+    def getById(self, id: int) -> Optional[Student]:
+        """Retourne un étudiant par son ID[cite: 185, 189]."""
+        return Student.query.get(id)
 
     def countStudents(self) -> int:
-        return len(self.__students)
+        """Retourne le nombre total d'étudiants[cite: 186, 189]."""
+        return Student.query.count()
 
-
+# Instance unique pour l'application
 student_service = StudentService()

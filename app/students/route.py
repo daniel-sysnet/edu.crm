@@ -1,30 +1,27 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from app.students.student_service import student_service
+from app.services.student__service import student_service
 from app.models.gender import Genre
 
 students_bp = Blueprint("students", __name__, url_prefix="/students")
 
-
 @students_bp.route("/")
 def list():
-    q        = request.args.get("q", "").strip()
-    gender   = request.args.get("gender", "")
-    per_page = int(request.args.get("per_page", current_app.config["PAGINATION_DEFAULT"]))
-    page     = int(request.args.get("page", 1))
+    """Liste les étudiants avec filtres et pagination[cite: 249]."""
+    q = request.args.get("q", "").strip()
+    gender = request.args.get("gender", "")
+    page = request.args.get("page", 1, type=int)
 
-    genre_enum = None
-    if gender == "M":
-        genre_enum = Genre.M
-    elif gender == "F":
-        genre_enum = Genre.F
+    default_per_page = current_app.config.get("PAGINATION_DEFAULT", 10)
+    per_page = request.args.get("per_page", default_per_page, type=int)
 
-    filtered = student_service.listStudents(q, genre_enum)
+    genre_enum = Genre[gender] if gender in [g.name for g in Genre] else None
 
-    total       = len(filtered)
+    all_filtered = student_service.listStudents(q, genre_enum)
+
+    total = len(all_filtered)
     total_pages = max(1, -(-total // per_page))
-    page        = max(1, min(page, total_pages))
-    start       = (page - 1) * per_page
-    items       = filtered[start:start + per_page]
+    start = (page - 1) * per_page
+    items = all_filtered[start:start + per_page]
 
     return render_template(
         "students/list.html",
@@ -34,96 +31,43 @@ def list():
         per_page=per_page,
         total_pages=total_pages,
         q=q,
-        gender=gender,
-        admin={"name": "Jean Dupont", "photo_url": ""}
+        gender=gender
     )
-
 
 @students_bp.route("/create", methods=["GET", "POST"])
 def create():
+    """Formulaire et traitement d'ajout."""
     from app.students.form import StudentForm
-
     form = StudentForm()
 
     if form.validate_on_submit():
-        genre_enum = Genre.M if form.genre.data == "M" else Genre.F
-
         student_service.addStudent(
             name=form.name.data,
             email=form.email.data,
-            genre=genre_enum,
+            genre=form.genre.data, 
             birthday=form.birthday.data,
             adresse=form.adresse.data,
             telephone=form.telephone.data
         )
-
-        flash("Étudiant inscrit avec succès.", "success")
+        flash("Étudiant ajouté avec succès.", "success")
         return redirect(url_for("students.list"))
 
-    return render_template(
-        "students/create.html",
-        form=form,
-        admin={"name": "Jean Dupont", "photo_url": ""},
-        PHONE_PREFIX=current_app.config["PHONE_PREFIX"]
-    )
+    return render_template("students/create.html", form=form)
 
-
-@students_bp.route("/<string:matricule>")
-def detail(matricule):
-    student = student_service.getByMatricule(matricule)
-
+@students_bp.route("/<int:id>")
+def detail(id):
+    """Profil détaillé de l'étudiant."""
+    student = student_service.getById(id)
     if not student:
         flash("Étudiant introuvable", "danger")
         return redirect(url_for("students.list"))
+    return render_template("students/detail.html", student=student)
 
-    return render_template(
-        "students/detail.html",
-        student=student
-    )
-
-
-@students_bp.route("/<string:matricule>/edit", methods=["GET", "POST"])
-def edit(matricule):
-    from app.students.form import StudentForm
-
-    student = student_service.getByMatricule(matricule)
-
-    if not student:
-        flash("Étudiant introuvable", "danger")
-        return redirect(url_for("students.list"))
-
-    form = StudentForm(obj=student)
-
-    if form.validate_on_submit():
-        genre_enum = Genre.M if form.genre.data == "M" else Genre.F
-
-        student_service.updateStudent(
-            matricule=matricule,
-            name=form.name.data,
-            email=form.email.data,
-            genre=genre_enum,
-            birthday=form.birthday.data,
-            adresse=form.adresse.data,
-            telephone=form.telephone.data
-        )
-
-        flash("Étudiant modifié avec succès", "success")
-        return redirect(url_for("students.list"))
-
-    return render_template(
-        "students/edit.html",
-        form=form,
-        student=student
-    )
-
-
-@students_bp.route("/<string:matricule>/delete", methods=["POST"])
-def delete(matricule):
-    student = student_service.deleteStudent(matricule)
-
-    if not student:
-        flash("Étudiant introuvable", "danger")
-    else:
+@students_bp.route("/delete/<int:id>", methods=["POST"])
+def delete(id):
+    """Suppression d'un étudiant."""
+    if student_service.deleteStudent(id):
         flash("Étudiant supprimé avec succès", "success")
-
+    else:
+        flash("Erreur lors de la suppression", "danger")
     return redirect(url_for("students.list"))
