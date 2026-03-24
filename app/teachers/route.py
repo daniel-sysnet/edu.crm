@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, url_for, redirect
 from app.models.gender     import Gender
 from app.models.speciality import Speciality
 from app.services.teacher_service import TeacherService
+from app.utils.db_errors import handle_integrity_error
+from sqlalchemy.exc import IntegrityError
 
 teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
 teacher_service = TeacherService()
@@ -44,21 +46,23 @@ def create():
     from flask import current_app, flash, redirect
     form = TeacherForm()
     if form.validate_on_submit():
-        teacher_service.addTeacher(
-            name=form.name.data or "",
-            email=form.email.data or "",
-            speciality=Speciality(form.speciality.data),
-            gender=Gender(form.gender.data),
-            dob=form.dob.data,
-            address=form.address.data or "",
-            phone=form.phone.data or "",
-        )
-        flash("Enseignant ajouté avec succès.", "success")
-        return redirect(url_for("teachers.list"))
+        try:
+            teacher_service.addTeacher(
+                name=form.name.data or "",
+                email=form.email.data or "",
+                speciality=Speciality(form.speciality.data),
+                gender=Gender(form.gender.data),
+                dob=form.dob.data,
+                address=form.address.data or "",
+                phone=form.phone.data or "",
+            )
+            flash("Enseignant ajouté avec succès.", "success")
+            return redirect(url_for("teachers.list"))
+        except IntegrityError as e:
+            handle_integrity_error(e, form)
     return render_template(
         "teachers/create.html",
         form         = form,
-        admin = {"name": "Jean Dupont", "photo_url": ""},
         PHONE_PREFIX = current_app.config["PHONE_PREFIX"],
     )
 
