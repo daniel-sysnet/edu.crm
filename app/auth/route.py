@@ -1,36 +1,26 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from functools import wraps
-from app.services.auth_service import AuthService
+from flask import Blueprint, render_template, flash, redirect, url_for
+from flask_login import login_user
+from app.models import User
+from .forms import LoginForm
+from app.auth.session import login_user
+
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
-
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard.index'))
-
-    if request.method == 'POST':
-        login    = request.form.get('login', '').strip()
-        password = request.form.get('password', '').strip()
-
-        auth_service = AuthService()
-        user = auth_service.login(login, password)
-
-        if user:
-            session['user_id'] = user.id
-            session['login']   = user.login
-            flash(f"Bienvenue {user.login} ! Connexion réussie.", "success")
-            return redirect(url_for('dashboard.index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first() # utiliser le service ici
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            flash("Connexion réussie ! Bienvenue.", "success")
+            return redirect(url_for("dashboard.index"))
         else:
-            flash("Identifiant ou mot de passe incorrect.", "danger")
+            flash("Email ou mot de passe incorrect.", "error")
+    return render_template("auth/login.html", form=form)
 
-    return render_template('auth/login.html')
-
-
-@auth_bp.route('/logout')
+@auth_bp.route("/logout")
 def logout():
-    login = session.get('login', 'Utilisateur')
-    session.clear()
-    flash(f"Au revoir {login}, vous êtes déconnecté.", "info")
-    return redirect(url_for('auth.login'))
+    # Implementer
+    return None
