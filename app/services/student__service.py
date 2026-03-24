@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 from app.models.student import Student
-from app.models.genre import Genre
+from app.models.gender import Genre
 
 
 class StudentService:
