@@ -94,7 +94,7 @@ def create():
     )
 
 
-@students_bp.route("/<str:mat>")
+@students_bp.route("/<string:mat>")
 def detail(mat):
     # TODO: student_service.get_student_by_mat(mat) avec Alchemy
     return render_template("students/detail.html")
