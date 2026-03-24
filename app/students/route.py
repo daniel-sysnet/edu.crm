@@ -1,25 +1,26 @@
 from math import ceil
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from app.services.student__service import StudentService
-from app.models.gender import Gender
-from app.models.action_type import ActionType
+from app.services.student__service import student_service
+from app.services.course__service import course_service
+from app.services.activity__service import activity_service
+from app.services.auth_service import auth_service
+from app.models.genre import Genre
+from app.models.action import Action
 from app.auth.decorators import login_required
 
 students_bp = Blueprint('students', __name__, url_prefix='/students')
-student_service = StudentService()
-# Services will be initialized as needed within route handlers
 
 
 @students_bp.route('/')
 @login_required
 def list():
     query = request.args.get('q')
-    gender_param = request.args.get('gender')
+    genre_param = request.args.get('genre')
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 5))
 
-    gender = Gender(gender_param) if gender_param else None
-    students = student_service.listStudents(query=query, gender=gender)
+    genre = Genre(genre_param) if genre_param else None
+    students = student_service.listStudents(query=query, genre=genre)
 
     total = len(students)
     pages = ceil(total / per_page) if total > 0 else 1
@@ -33,7 +34,7 @@ def list():
         pages=pages,
         per_page=per_page,
         query=query,
-        gender=gender_param
+        genre=genre_param
     )
 
 
@@ -44,7 +45,7 @@ def create():
         from datetime import datetime
         name = request.form.get('name')
         email = request.form.get('email')
-        gender = Gender(request.form.get('gender'))
+        genre = Genre(request.form.get('genre'))
         birthday = datetime.strptime(request.form.get('birthday'), '%Y-%m-%d').date()
         adresse = request.form.get('adresse')
         telephone = request.form.get('telephone')
@@ -52,21 +53,20 @@ def create():
         student = student_service.addStudent(
             name=name,
             email=email,
-            gender=gender,
+            genre=genre,
             birthday=birthday,
             adresse=adresse,
             telephone=telephone
         )
 
-        # TODO: Uncomment when auth_service and activity_service are properly initialized
-        # user = auth_service.getUserById(session['user_id'])
-        # activity_service.log(
-        #     action=ActionType.AJOUTER,
-        #     model_type="Student",
-        #     model_id=student.id,
-        #     details=student.name,
-        #     user=user
-        # )
+        user = auth_service.getUserById(session['user_id'])
+        activity_service.log(
+            action=Action.AJOUTER,
+            model_type="Student",
+            model_id=student.id,
+            details=student.name,
+            user=user
+        )
 
         flash(f"Étudiant {student.name} ajouté avec succès", "success")
         return redirect(url_for('students.list'))
@@ -82,12 +82,11 @@ def detail(id: int):
         flash("Étudiant introuvable", "danger")
         return redirect(url_for('students.list'))
 
-    # TODO: Uncomment when course_service is properly initialized
-    # courses = course_service.getCoursesByStudent(id)
+    courses = course_service.getCoursesByStudent(id)
 
     return render_template('students/detail.html',
-        student=student
-        # courses=courses
+        student=student,
+        courses=courses
     )
 
 
@@ -99,18 +98,16 @@ def delete(id: int):
         flash("Étudiant introuvable", "danger")
         return redirect(url_for('students.list'))
 
-    # TODO: Uncomment when course_service is properly initialized
-    # course_service.removeStudentFromAllCourses(id)
+    course_service.removeStudentFromAllCourses(id)
 
-    # TODO: Uncomment when auth_service and activity_service are properly initialized
-    # user = auth_service.getUserById(session['user_id'])
-    # activity_service.log(
-    #     action=ActionType.SUPPRIMER,
-    #     model_type="Student",
-    #     model_id=id,
-    #     details=student.name,
-    #     user=user
-    # )
+    user = auth_service.getUserById(session['user_id'])
+    activity_service.log(
+        action=Action.SUPPRIMER,
+        model_type="Student",
+        model_id=id,
+        details=student.name,
+        user=user
+    )
 
     flash(f"Étudiant {student.name} supprimé avec succès", "success")
     return redirect(url_for('students.list'))

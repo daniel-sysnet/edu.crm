@@ -46,15 +46,15 @@ def list():
 @teachers_bp.route("/create", methods=["GET", "POST"])
 def create():
     if request.method == "POST":
-        name       = request.form.get("name", "").strip()
-        email      = request.form.get("email", "").strip()
+        name      = request.form.get("name", "").strip()
+        email     = request.form.get("email", "").strip()
         speciality = request.form.get("speciality", "").strip()
         gender     = request.form.get("gender", "").strip()
-        birthday   = request.form.get("birthday", "").strip()
-        address    = request.form.get("address", "").strip()
-        phone      = request.form.get("phone", "").strip()
+        birthday  = request.form.get("birthday", "").strip()
+        adresse   = request.form.get("adresse", "").strip()
+        telephone = request.form.get("telephone", "").strip()
 
-        if not all([name, email, speciality, gender, birthday, address, phone]):
+        if not all([name, email, speciality, gender, birthday, adresse, telephone]):
             flash("Tous les champs sont obligatoires.", "danger")
             return render_template(
                 "teachers/create.html",
@@ -64,11 +64,11 @@ def create():
             teacher = teacher_service.addTeacher(
                 name=name,
                 email=email,
-                speciality=Speciality(speciality),
+                specialty=Speciality(speciality),
                 gender=Gender(gender),
                 birthday=date.fromisoformat(birthday),
-                address=address,
-                phone=phone
+                adresse=adresse,
+                telephone=telephone
             )
             flash(f"Enseignant '{teacher.name}' ajouté avec succès.", "success")
             return redirect(url_for("teachers.detail", id=teacher.id))

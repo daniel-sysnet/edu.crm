@@ -1,21 +1,22 @@
 from datetime import date
 from typing import Optional
 from app.models.student import Student
-from app.models.gender import Gender
+from app.models.genre import Genre
 
 
 class StudentService:
     def __init__(self):
         self.__students: list[Student] = []
 
-    def addStudent(self, name: str, email: str, gender: Gender, birthday: date, adresse: str, telephone: str) -> Student:
-        student = Student()
-        student.name = name
-        student.email = email
-        student.gender = gender
-        student.dob = birthday
-        student.address = adresse
-        student.phone = telephone
+    def addStudent(self, name: str, email: str, genre: Genre, birthday: date, adresse: str, telephone: str) -> Student:
+        student = Student(
+            name=name,
+            email=email,
+            genre=genre,
+            birthday=birthday,
+            adresse=adresse,
+            telephone=telephone
+        )
         self.__students.append(student)
         return student
 
@@ -26,15 +27,15 @@ class StudentService:
         self.__students.remove(student)
         return student
 
-    def listStudents(self, query: str = None, gender: Gender = None) -> list[Student]:
+    def listStudents(self, query: str = None, genre: Genre = None) -> list[Student]:
         result = self.__students
         if query:
             result = [s for s in result if
                 query.lower() in s.name.lower() or
                 query.lower() in s.email.lower()
             ]
-        if gender:
-            result = [s for s in result if s.gender == gender]
+        if genre:
+            result = [s for s in result if s.genre == genre]
         return result
 
     def getById(self, id: int) -> Optional[Student]:
