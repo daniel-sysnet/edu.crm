@@ -27,5 +27,4 @@ def logout():
     from flask import session
     username = get_session_user()
     session.clear()
-    flash(f"Au revoir, vous êtes déconnecté.", "info")
     return redirect(url_for("auth.login"))
