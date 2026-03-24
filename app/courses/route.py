@@ -22,17 +22,30 @@ def list():
         "courses/list.html",
         courses=items,
         total=total,
+        per_page=per_page,
         page=page,
         total_pages=total_pages,
         q=q
     )
 
+# route.py
 @courses_bp.route("/create", methods=["GET", "POST"])
 def create():
-    """Formulaire et traitement de création de cours."""
     from app.courses.form import CourseForm
+    from app.services.teacher_service import TeacherService
+
     form = CourseForm()
-    
+    teacher_service = TeacherService()
+
+    # Recherche enseignant par matricule
+    teacher_search = (request.args.get("teacher_search") or
+                      request.form.get("teacher_search") or "").strip()
+    teacher_found = None
+    if teacher_search:
+        teacher_found = teacher_service.getByMatricule(teacher_search)
+
+    if teacher_found:
+        form.teacher_id.data = str(teacher_found.id)
 
     if form.validate_on_submit():
         course_service.add_course(
@@ -42,8 +55,12 @@ def create():
         flash("Cours créé avec succès.", "success")
         return redirect(url_for("courses.list"))
 
-
-    return render_template("courses/create.html", form=form)
+    return render_template(
+        "courses/create.html",
+        form           = form,
+        teacher_search = teacher_search,
+        teacher_found  = teacher_found,
+    )
 
 @courses_bp.route("/<string:code>")
 def detail(code):
