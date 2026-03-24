@@ -1,0 +1,191 @@
+{% extends "layouts/app.html" %}
+
+{% from "macros/tables.html"  import table_header, empty_state, table_footer %}
+{% from "macros/badges.html"  import id_badge %}
+{% from "macros/avatar.html"  import avatar %}
+
+{% block title %}Inscrire des étudiants — {{ course.title }} — {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+
+<div class="w-full max-w-7xl mx-auto px-8 flex-grow flex gap-8 py-8">
+
+    {# ══════════════════════════════════════════════
+       COLONNE GAUCHE — Carte du cours cible
+    ══════════════════════════════════════════════ #}
+    <div class="w-1/4 flex-shrink-0">
+        <div class="bg-white border border-sand rounded-xl shadow-glass overflow-hidden flex flex-col h-[500px]">
+
+            <div class="bg-slate-50 border-b border-sand px-6 py-4">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Classe Cible</h3>
+            </div>
+
+            <div class="flex-grow flex flex-col items-center justify-center p-8 text-center space-y-6 bg-[#2D2D3A]">
+                <div class="space-y-2">
+                    <h2 class="font-serif text-3xl font-bold text-[#F7F3EE]">{{ course.title }}</h2>
+                    <span class="font-mono text-xs font-bold text-[#F7F3EE] bg-white/10 px-3 py-1.5 rounded-md inline-block border border-white/20">
+                        {{ course.code }}
+                    </span>
+                </div>
+                <div class="flex flex-col items-center gap-1 mt-4">
+                    <span class="font-mono text-2xl font-bold text-[#4A8C7F]">{{ course.students | length }}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">inscrits</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {# ══════════════════════════════════════════════
+       COLONNE DROITE — Recherche + tableau étudiants
+    ══════════════════════════════════════════════ #}
+    <div class="w-3/4 flex flex-col space-y-6">
+
+        {# Breadcrumb #}
+        <nav class="flex items-center text-sm font-medium text-slate-500 space-x-2">
+            <a class="hover:text-slate-800 transition-colors" href="{{ url_for('courses.list') }}">Cours</a>
+            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+            <a class="hover:text-slate-800 transition-colors" href="{{ url_for('courses.detail', code=course.code) }}">{{ course.title }}</a>
+            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+            <span class="text-slate-800">Inscrire des étudiants</span>
+        </nav>
+
+        {# Barre de recherche #}
+        <form method="GET" class="bg-white border border-sand p-4 rounded-xl flex flex-wrap gap-4 items-center shadow-sm">
+            <div class="relative flex-grow min-w-[300px]">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      style="font-size:20px">search</span>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ q }}"
+                    placeholder="Rechercher un étudiant par nom, matricule ou email..."
+                    class="w-full pl-10 pr-4 py-2.5 text-sm font-body text-ink
+                           border border-sand rounded-lg
+                           focus:outline-none focus:ring-1 focus:ring-celadon focus:border-celadon
+                           transition-all duration-200 placeholder-slate-400"
+                />
+            </div>
+
+            {# Sélecteur items par page #}
+            <div class="flex items-center gap-3">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body whitespace-nowrap">
+                    Items par page
+                </label>
+                <select
+                    name="per_page"
+                    onchange="this.form.submit()"
+                    class="border border-sand rounded-lg text-sm text-ink bg-white
+                           py-2 px-2 min-w-[30px]
+                           focus:outline-none focus:ring-1 focus:ring-celadon focus:border-celadon
+                           transition-all duration-200 cursor-pointer"
+                >
+                    {% for size in PAGINATION_SIZES %}
+                    <option value="{{ size }}" {{ 'selected' if per_page == size }}>{{ size }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Reset #}
+            <div class="flex items-center pl-4 border-l border-sand h-10">
+                <a href="{{ url_for('courses.assign', code=course.code) }}"
+                   class="flex items-center justify-center w-10 h-10 rounded-lg
+                          bg-[#F3F4F6] border border-sand
+                          text-slate-500 hover:text-ink hover:bg-slate-200
+                          transition-colors duration-150"
+                   title="Réinitialiser les filtres">
+                    <span class="material-symbols-outlined" style="font-size:20px">restart_alt</span>
+                </a>
+            </div>
+        </form>
+
+        {# Tableau des étudiants #}
+        <div class="table-card">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-sand bg-slate-50">
+                        {{ table_header("N°", "text-center") }}
+                        {{ table_header("Matricule") }}
+                        {{ table_header("Étudiant") }}
+                        {{ table_header("Cours", "text-center") }}
+                        {{ table_header("Actions", "text-right") }}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-sand">
+                    {% if students %}
+                        {% for s in students %}
+                        {% set already = s.id in enrolled_ids %}
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+
+                            {# N° #}
+                            <td class="px-6 py-4 text-sm font-mono text-slate-400 text-center">
+                                {{ (page - 1) * per_page + loop.index }}
+                            </td>
+
+                            {# Matricule #}
+                            <td class="px-6 py-4">
+                                {{ id_badge(s.matricule) }}
+                            </td>
+
+                            {# Étudiant #}
+                            <td class="px-6 py-4 font-body">
+                                <div class="flex items-center gap-3">
+                                    {{ avatar(s.name, '', size="w-8 h-8", text_size="text-xs") }}
+                                    <span class="text-sm font-medium text-slate-700">{{ s.name }}</span>
+                                </div>
+                            </td>
+
+                            {# Nombre de cours #}
+                            <td class="px-6 py-4 font-mono text-sm text-slate-700 text-center">
+                                {{ s.courses | length }}
+                            </td>
+
+                            {# Action #}
+                            <td class="px-6 py-4">
+                                <div class="flex justify-end">
+                                    {% if already %}
+                                    <span class="bg-slate-200 text-slate-400 cursor-not-allowed font-medium text-sm px-3 py-1.5 rounded-md flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[18px]">check</span>
+                                        Inscrit
+                                    </span>
+                                    {% else %}
+                                    <form method="POST" action="{{ url_for('courses.assign', code=course.code, **request.args) }}">
+                                        <input type="hidden" name="student_id" value="{{ s.id }}"/>
+                                        <button type="submit"
+                                                class="bg-ocre text-white hover:bg-[#b07d2c] hover:shadow-sm
+                                                       font-medium text-sm px-3 py-1.5 rounded-md transition-all
+                                                       flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[18px]">add</span>
+                                            Inscrire
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        {{ empty_state("Aucun étudiant trouvé.", "school") }}
+                    {% endif %}
+                </tbody>
+            </table>
+
+            {# Footer pagination #}
+            {{ table_footer(
+                items       = students,
+                total       = total,
+                page        = page,
+                per_page    = per_page,
+                total_pages = total_pages,
+                base_url    = url_for('courses.assign', code=course.code),
+                args        = request.args,
+                label       = "étudiants"
+            ) }}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

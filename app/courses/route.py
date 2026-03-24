@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from app.services.course__service import CourseService
+from app.services.student__service import student_service
 from app.utils.show_more import paginate_show_more
 
 courses_bp = Blueprint("courses", __name__, url_prefix="/courses")
@@ -112,18 +113,48 @@ def delete(id):
 @courses_bp.route("/<string:code>/assign", methods=["GET", "POST"])
 def assign(code):
     """Inscription/affectation d'un étudiant au cours."""
-    if request.method == "POST":
-        student_id = request.form.get("student_id")
-        course_id  = request.form.get("course_id")
-        if course_service.assign_student_to_course(course_id, student_id):
-            flash("Étudiant inscrit au cours.", "success")
-        else:
-            flash("Erreur lors de l'inscription.", "danger")
-        return redirect(url_for("courses.assign", code=code))
-
     course = course_service.get_by_code(code)
     if not course:
         flash("Cours introuvable.", "danger")
         return redirect(url_for("courses.list"))
 
-    return render_template("courses/assign.html", course=course)
+    if request.method == "POST":
+        student_id = request.form.get("student_id", type=int)
+        if course_service.assign_student_to_course(course.id, student_id):
+            flash("Étudiant inscrit au cours.", "success")
+        else:
+            flash("Erreur lors de l'inscription.", "danger")
+        # Rediriger avec les mêmes paramètres de filtre
+        return redirect(url_for("courses.assign", code=code, **request.args))
+
+    # ── Filtrage & pagination des étudiants ──
+    q        = request.args.get("q", "").strip()
+    page     = request.args.get("page", 1, type=int)
+    per_page = request.args.get(
+        "per_page",
+        current_app.config.get("PAGINATION_DEFAULT", 5),
+        type=int,
+    )
+
+    all_students = student_service.listStudents(query=q if q else None)
+
+    total       = len(all_students)
+    total_pages = max(1, -(-total // per_page))
+    page        = max(1, min(page, total_pages))
+    start       = (page - 1) * per_page
+    items       = all_students[start:start + per_page]
+
+    # IDs des étudiants déjà inscrits à ce cours
+    enrolled_ids = {s.id for s in course.students}
+
+    return render_template(
+        "courses/assign.html",
+        course       = course,
+        students     = items,
+        enrolled_ids = enrolled_ids,
+        total        = total,
+        page         = page,
+        per_page     = per_page,
+        total_pages  = total_pages,
+        q            = q,
+    )
