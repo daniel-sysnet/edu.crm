@@ -23,7 +23,7 @@ class Teacher(db.Model):
     address    = db.Column(db.Text,             nullable=True)
     created_at = db.Column(db.DateTime,         default=datetime.utcnow, nullable=False)
 
-    courses = db.relationship("Course", back_populates="teacher")
+    courses = db.relationship("Course", back_populates="teacher", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Teacher {self.matricule} — {self.name}>"
