@@ -105,7 +105,7 @@
                         {# Avatar + Nom #}
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
-                                {{ avatar(t.name, t.get('photo_url', ''), size="w-8 h-8", text_size="text-xs") }}
+                                {{ avatar(t.name, t.photoUrl | default(''), size="w-8 h-8", text_size="text-xs") }}
                                 <span class="font-body font-medium text-slate-800">{{ t.name }}</span>
                             </div>
                         </td>
@@ -139,7 +139,7 @@
 
                         {# Nombre de cours #}
                         <td class="px-6 py-4 text-center text-sm font-semibold text-slate-700 text-center">
-                            {{ t.course_count }}
+                            {{ t.courses | length }}
                         </td>
 
                         {# Actions #}
@@ -153,7 +153,7 @@
                                         <span class="material-symbols-outlined text-xl">delete</span>
                                     </button>
                                 </form>
-                                <a href="{{ url_for('teachers.detail', id=t.id) }}"
+                                <a href="{{ url_for('teachers.detail', mat=t.matricule) }}"
                                    class="text-slate-400 hover:text-ocre p-1.5 rounded-lg transition-colors">
                                     <span class="material-symbols-outlined text-xl">chevron_right</span>
                                 </a>

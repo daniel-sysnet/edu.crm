@@ -112,10 +112,10 @@
                             {{ PHONE_PREFIX }}
                         </span>
                         {{ form.phone(class="input-form py-2 flex-1",
-                                      placeholder="000000000",
-                                      maxlength="9",
-                                      inputmode="numeric",
-                                      oninput="formatPhone(this)") }}
+              placeholder="XX XXX XX XX",
+              maxlength="12",
+              inputmode="numeric",
+              oninput="formatPhone(this)") }}
                     </div>
                     {% for e in form.phone.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
                 </div>
@@ -155,5 +155,12 @@ function formatPhone(input) {
     if (v.length > 7) out += ' ' + v.slice(7, 9);
     input.value = out;
 }
+
+document.addEventListener('submit', function(e) {
+    const phoneInput = e.target.querySelector('input[name="phone"]');
+    if (phoneInput) {
+        phoneInput.value = phoneInput.value.replace(/\s/g, '');
+    }
+});
 </script>
 {% endblock %}
