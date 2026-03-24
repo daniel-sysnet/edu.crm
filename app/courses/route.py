@@ -80,18 +80,19 @@ def delete(id):
         flash("Erreur lors de la suppression.", "danger")
     return redirect(url_for("courses.list"))
 
-@courses_bp.route("/<int:id>/assign", methods=["GET", "POST"])
-def assign(id):
+@courses_bp.route("/<string:code>/assign", methods=["GET", "POST"])
+def assign(code):
     """Inscription/affectation d'un étudiant au cours."""
     if request.method == "POST":
         student_id = request.form.get("student_id")
-        if course_service.assign_student_to_course(id, student_id):
+        course_id = request.form.get("course_id")
+        if course_service.assign_student_to_course(course_id, student_id):
             flash("Étudiant inscrit au cours.", "success")
         else:
             flash("Erreur lors de l'inscription.", "danger")
-        return redirect(url_for("courses.detail", id=id))
+        return redirect(url_for("courses.assign", code=code))
     
-    course = course_service.get_by_id(id)
+    course = course_service.get_by_code(code)
     if not course:
         flash("Cours introuvable.", "danger")
         return redirect(url_for("courses.list"))
