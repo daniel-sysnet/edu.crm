@@ -13,8 +13,7 @@ def login_user(user) -> None:
 
 def get_session_user() -> dict:
     if SESSION_USER_ID not in session:
-        # return None
-        # Mode test
+        return None
         return {"id": 1, "username": "Jean Dupont", "photo_url": ""}
     return {
         "id":       session[SESSION_USER_ID],
