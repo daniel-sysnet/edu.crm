@@ -1,26 +1,70 @@
 {% extends "layouts/app.html" %}
 
-{% from "macros/profile.html" import profile_header, meta_section, meta_row, gender_badge %}
+{% from "macros/profile.html" import meta_row, gender_badge %}
 {% from "macros/badges.html"  import id_badge %}
 {% from "macros/avatar.html"  import avatar %}
+{% from "macros/breadcrumb.html" import breadcrumb %}
+
+{% block title %}{{ student.name }} — {{ APP_NAME }}{% endblock %}
 
 {% block content %}
 
 {# ══════════════════════════════════════════════
-   BANDEAU SOMBRE
-   course.title  (pas .name)
-   course.code   ✓
+   BANDEAU SOMBRE — même style que l'enseignant
 ══════════════════════════════════════════════ #}
-{{ profile_header(
-    entity_type  = "Cours",
-    entity_icon  = "menu_book",
-    name         = course.title,
-    code         = course.code,
-    breadcrumbs  = [{"label": "Cours", "url": url_for("courses.list")}],
-    current_page = "Détails du Cours",
-    deco_icon    = "menu_book",
-    edit_url     = url_for("courses.edit", id=course.id)
-) }}
+<div class="bg-[#1C1C2E] pt-6 pb-20 px-8 relative z-10 shadow-md overflow-hidden">
+
+    {# Icône décorative fond #}
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <span class="material-symbols-outlined text-[#4A8C7F] opacity-[0.15]"
+              style="font-size: 280px;">school</span>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto relative z-10">
+
+        {{ breadcrumb([
+            {"label": "Étudiants", "url": url_for("students.list")},
+            {"label": "Profil Exécutif"}
+        ]) }}
+
+        <div class="flex justify-between items-end">
+
+            {# Grand label type — bas gauche #}
+            <div class="flex flex-col">
+                <span class="font-serif text-6xl font-bold text-[#C8923A] leading-none">Étudiant</span>
+                <span class="text-slate-400 text-xs uppercase tracking-[0.2em] mt-2 font-medium font-body">
+                    Profil Exécutif
+                </span>
+            </div>
+
+            {# Nom + matricule — droite #}
+            <div class="text-right">
+                <h2 class="font-serif text-5xl text-[#C8923A] tracking-wide mb-2">{{ student.name }}</h2>
+                <div class="inline-flex items-center gap-2 justify-end">
+                    <span class="text-slate-400 text-xs uppercase tracking-widest">Matricule :</span>
+                    <span class="id-badge-wrapper inline-flex items-center gap-1 w-fit cursor-pointer select-none"
+                          onmouseenter="showCopyIcon(this)"
+                          onmouseleave="hideBadgeIcons(this)"
+                          onclick="copyId(this, '{{ student.matricule }}')"
+                          title="Copier {{ student.matricule }}">
+                        <span class="font-mono text-sm text-white/90 bg-white/10 px-3 py-1 rounded">
+                            {{ student.matricule }}
+                        </span>
+                        <span class="badge-icon-slot relative flex-none" style="width:14px;height:14px;">
+                            <span class="badge-copy-icon absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-100">
+                                <span class="material-symbols-outlined text-white/60" style="font-size:12px;line-height:1">content_copy</span>
+                            </span>
+                            <span class="badge-check-icon absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-100">
+                                <span class="material-symbols-outlined text-[#4A8C7F]" style="font-size:12px;line-height:1">check</span>
+                            </span>
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 
 {# ══════════════════════════════════════════════
@@ -29,108 +73,108 @@
 <div class="px-8 w-full max-w-[1400px] mx-auto -mt-16 relative z-20 flex-grow mb-16">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
 
+        {# Séparateurs verticaux #}
         <div class="hidden lg:block absolute left-[25%]  top-[88px] bottom-0 w-px bg-sand -ml-4"></div>
         <div class="hidden lg:block absolute right-[25%] top-[88px] bottom-0 w-px bg-sand -mr-4"></div>
 
 
         {# ─────────────────────────────────────
-           COLONNE GAUCHE — Responsable Pédagogique
-           teacher.name           (pas .full_name)
-           teacher.matricule      (pas .code)
-           teacher.speciality.value (pas .specialty)
-           teacher.gender → Enum → gender_badge() via .value
+           COLONNE GAUCHE — Avatar chevauchant + Métadonnées
         ───────────────────────────────────── #}
-        {% call(caller) meta_section(
-            name          = course.teacher.name,
-            photo_url     = "",
-            section_title = "Responsable Pédagogique"
-        ) %}
+        <div class="lg:col-span-3 flex flex-col relative z-10 pr-4">
 
-            <div class="flex flex-col items-center text-center relative">
-                <a class="absolute top-0 right-0 size-8 rounded-full bg-[#F3F4F6] text-slate-500
-                           hover:bg-[#4A8C7F] hover:text-white transition-colors duration-200
-                           flex items-center justify-center"
-                   href="{{ url_for('teachers.detail', id=course.teacher.id) }}"
-                   title="Voir le profil complet">
-                    <span class="material-symbols-outlined text-xl">visibility</span>
-                </a>
-                <h4 class="font-serif text-xl font-bold text-slate-800 mt-2">
-                    {{ course.teacher.name }}
-                </h4>
-                <div class="mt-2">
-                    {{ id_badge(course.teacher.matricule) }}
-                </div>
+            {# Avatar chevauchant le bandeau sombre #}
+            <div class="size-40 rounded-full flex items-center justify-center text-5xl font-serif text-white
+                        shadow-xl border-4 border-[#C8923A] mb-8 relative z-30 overflow-hidden"
+                 style="background-color: hsl({{ (student.name[0] | upper | ord * 47) % 360 }}, 50%, 38%)">
+                {% set parts = student.name.strip().split(' ') %}
+                {{ (parts[0][0] | upper) ~ (parts[-1][0] | upper if parts | length > 1 else '') }}
             </div>
 
-            <hr class="border-sand"/>
+            <h3 class="font-serif text-2xl text-[#1C1C2E] border-b border-sand pb-3 mb-6">Métadonnées</h3>
 
-            {% call meta_row("person", "Genre") %}
-                {{ gender_badge(course.teacher.gender) }}
-            {% endcall %}
+            <div class="card p-6 flex flex-col gap-6 bg-white/80 backdrop-blur-sm">
 
-            {% call meta_row("verified", "Spécialité") %}
-                <div class="inline-flex items-center justify-center bg-slate-800 text-white
-                            font-mono text-xs font-bold px-2 py-1 rounded">
-                    {{ course.teacher.speciality.value }}
-                </div>
-            {% endcall %}
+                {# Genre #}
+                {% call meta_row("person", "Genre") %}
+                    {{ gender_badge(student.gender) }}
+                {% endcall %}
 
-        {% endcall %}
+                {# Âge / Date de naissance #}
+                {% if student.dob %}
+                {% call meta_row("cake", "Date de naissance") %}
+                    <p class="text-sm font-medium text-slate-800">{{ student.dob | format_date }}</p>
+                {% endcall %}
+                {% endif %}
+
+                {# Date d'inscription #}
+                {% call meta_row("event_available", "Date d'inscription") %}
+                    <p class="text-sm font-medium text-slate-800">{{ student.created_at | format_date }}</p>
+                {% endcall %}
+
+            </div>
+        </div>
 
 
         {# ─────────────────────────────────────
-           COLONNE CENTRALE — Liste des étudiants
-           student.name      (pas .full_name)
-           student.matricule (pas .code)
-           student.gender → Enum → gender_badge() via .value
+           COLONNE CENTRALE — Dossier Académique
         ───────────────────────────────────── #}
         <div class="lg:col-span-6 mt-16 lg:mt-24 space-y-6 px-4">
 
+            {# Header compteur #}
             <div class="flex items-end justify-between border-b border-sand pb-3">
-                <h3 class="font-serif text-3xl text-[#1C1C2E]">Liste des Étudiants Inscrits</h3>
+                <h3 class="font-serif text-3xl text-[#1C1C2E]">Dossier Académique</h3>
                 <div class="flex flex-col items-end text-right">
                     <span class="font-mono text-3xl font-bold text-[#4A8C7F] leading-none">
-                        {{ total_students }}
+                        {{ total_courses }}
                     </span>
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                        ÉTUDIANTS TOTAUX
+                        COURS TOTAUX
                     </span>
                 </div>
             </div>
 
+            {# Tableau des cours #}
             <div class="table-card bg-white/80 backdrop-blur-sm">
                 <table class="w-full text-left border-collapse table-auto">
                     <thead class="bg-white/50 backdrop-blur-md border-b border-sand">
                         <tr>
-                            <th class="w-1   px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">N°</th>
-                            <th class="w-1   px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Matricule</th>
-                            <th class="w-full px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Étudiant</th>
-                            <th class="w-1   px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Genre</th>
-                            <th class="w-1   px-6 py-4"></th>
+                            <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">N°</th>
+                            <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Code</th>
+                            <th class="w-full px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Titre</th>
+                            <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Enseignant</th>
+                            <th class="w-1 px-6 py-4"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-sand">
-                        {% for student in students %}
+                        {% for course in courses %}
                         <tr class="hover:bg-slate-50 transition-colors group">
 
                             <td class="px-6 py-4 text-sm font-mono text-slate-400 text-center whitespace-nowrap">
                                 {{ loop.index }}
                             </td>
+
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ id_badge(student.matricule) }}
+                                {{ id_badge(course.code) }}
                             </td>
-                            <td class="px-6 py-4 font-body font-medium text-slate-800 whitespace-nowrap">
+
+                            <td class="px-6 py-4 font-body font-medium text-slate-800 text-xs">
+                                {{ course.title }}
+                            </td>
+
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-3">
-                                    {{ avatar(student.name, "", size="w-8 h-8", text_size="text-xs") }}
-                                    <span>{{ student.name }}</span>
+                                    {{ avatar(course.teacher.name, "", size="w-6 h-6", text_size="text-[10px]") }}
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-medium text-slate-800 truncate">{{ course.teacher.name }}</span>
+                                        {{ id_badge(course.teacher.matricule) }}
+                                    </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                {{ gender_badge(student.gender) }}
-                            </td>
+
                             <td class="px-6 py-4 text-right whitespace-nowrap">
-                                <a href="{{ url_for('students.detail', id=student.id) }}"
-                                   class="text-slate-400 hover:text-ocre transition-colors float-right">
+                                <a href="{{ url_for('courses.detail', code=course.code) }}"
+                                   class="text-slate-400 hover:text-[#4A8C7F] transition-colors">
                                     <span class="material-symbols-outlined">chevron_right</span>
                                 </a>
                             </td>
@@ -139,10 +183,9 @@
                         {% else %}
                         <tr>
                             <td colspan="5" class="px-6 py-16 text-center">
-                                <div class="flex flex-col items-center gap-3">
-                                    <span class="material-symbols-outlined text-slate-300"
-                                          style="font-size:48px">group_off</span>
-                                    <p class="text-sm text-slate-400 font-body">Aucun étudiant inscrit.</p>
+                                <div class="flex flex-col items-center gap-3 text-slate-400">
+                                    <span class="material-symbols-outlined text-4xl opacity-30">menu_book</span>
+                                    <p class="text-sm font-medium font-body">Aucun cours inscrit.</p>
                                 </div>
                             </td>
                         </tr>
@@ -150,8 +193,9 @@
                     </tbody>
                 </table>
 
-                {% if has_more %}
-                <a href="{{ url_for('courses.detail', id=course.id, more=next_more) }}"
+                {# Bouton Afficher plus #}
+                {% if has_more and next_more is not none %}
+                <a href="{{ url_for('students.detail', mat=student.matricule) }}?{{ request.args | replace_arg('more', next_more) }}"
                    class="bg-[#F3F4F6] py-2 flex flex-col items-center justify-center
                           cursor-pointer transition-colors hover:bg-gray-200 border-t border-sand">
                     <span class="font-body font-medium text-[#6B7280] text-sm flex items-center gap-1">
@@ -166,27 +210,46 @@
 
 
         {# ─────────────────────────────────────
-           COLONNE DROITE — Informations
-           course.created_at | format_date  (filtre ajouté dans __init__.py)
+           COLONNE DROITE — Contact & Support
         ───────────────────────────────────── #}
         <div class="lg:col-span-3 mt-16 lg:mt-24 space-y-6 pl-4">
 
-            <h3 class="font-serif text-2xl text-[#1C1C2E] border-b border-sand pb-3">Informations</h3>
+            <h3 class="font-serif text-2xl text-[#1C1C2E] border-b border-sand pb-3">Contact & Support</h3>
 
-            <div class="card p-6 bg-white/80 backdrop-blur-sm flex flex-col gap-4">
-                {% call meta_row("calendar_today", "Date de Création") %}
-                    <p class="font-mono text-[13px] text-slate-800">
-                        {{ course.created_at | format_date }}
-                    </p>
-                {% endcall %}
+            <div class="card p-6 space-y-6 bg-white/80 backdrop-blur-sm">
+
+                {% if student.email %}
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</p>
+                    <a href="mailto:{{ student.email }}"
+                       class="font-mono text-[13px] text-[#4A8C7F] hover:underline break-all">
+                        {{ student.email }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if student.phone %}
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Téléphone</p>
+                    <p class="font-mono text-[13px] text-slate-800">{{ student.phone | format_phone }}</p>
+                </div>
+                {% endif %}
+
+                {% if student.address %}
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Adresse Domicile</p>
+                    <p class="text-[13px] font-medium text-[#1C1C2E] whitespace-pre-line">{{ student.address }}</p>
+                </div>
+                {% endif %}
+
             </div>
 
-            <a href="{{ url_for('courses.enroll', id=course.id) }}"
-               class="w-full bg-[#64748B] text-white px-4 py-3.5 rounded-lg font-medium
+            <a href="#"
+               class="w-full bg-[#4A8C7F] text-white px-4 py-3.5 rounded-lg font-medium
                       flex justify-center items-center gap-2
-                      hover:bg-slate-600 transition-all shadow-sm">
-                <span class="material-symbols-outlined text-[20px]">add</span>
-                Inscrire un étudiant
+                      hover:bg-[#3d7469] transition-all shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">library_add</span>
+                Affecter à un cours
             </a>
 
         </div>

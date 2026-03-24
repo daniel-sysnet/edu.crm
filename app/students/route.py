@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 # On garde le nom exact de ton fichier service
-from app.services.student__service import student_service 
+from app.services.student__service import student_service
 from app.models.gender import Gender
+from app.utils.show_more import paginate_show_more
 
 students_bp = Blueprint("students", __name__, url_prefix="/students")
 
@@ -65,7 +66,25 @@ def detail(mat):
     if not student:
         flash("Étudiant introuvable", "danger")
         return redirect(url_for("students.list"))
-    return render_template("students/detail.html", student=student)
+
+    # Cours triés du plus récent au plus ancien
+    all_courses = sorted(student.courses, key=lambda c: c.created_at, reverse=True)
+
+    result = paginate_show_more(
+        items   = all_courses,
+        more    = request.args.get("more", 0, type=int),
+        initial = current_app.config.get("PROFILE_LIST_INITIAL", 5),
+        steps   = current_app.config.get("PROFILE_LIST_STEPS", [10, 20, -1]),
+    )
+
+    return render_template(
+        "students/detail.html",
+        student       = student,
+        courses       = result["items"],
+        total_courses = result["total"],
+        has_more      = result["has_more"],
+        next_more     = result["next_more"],
+    )
 
 @students_bp.route("/delete/<int:id>", methods=["POST"])
 def delete(id):
