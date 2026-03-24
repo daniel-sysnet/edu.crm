@@ -102,6 +102,7 @@
                 <table class="w-full text-left border-collapse table-auto">
                     <thead class="bg-white/50 backdrop-blur-md border-b border-sand">
                         <tr>
+                            <th class="w-1   px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">N°</th>
                             <th class="w-1   px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Matricule</th>
                             <th class="w-full px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Étudiant</th>
                             <th class="w-1   px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Genre</th>
@@ -112,6 +113,9 @@
                         {% for student in students %}
                         <tr class="hover:bg-slate-50 transition-colors group">
 
+                            <td class="px-6 py-4 text-sm font-mono text-slate-400 text-center whitespace-nowrap">
+                                {{ loop.index }}
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 {{ id_badge(student.matricule) }}
                             </td>
@@ -134,7 +138,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="4" class="px-6 py-16 text-center">
+                            <td colspan="5" class="px-6 py-16 text-center">
                                 <div class="flex flex-col items-center gap-3">
                                     <span class="material-symbols-outlined text-slate-300"
                                           style="font-size:48px">group_off</span>

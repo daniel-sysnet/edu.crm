@@ -17,7 +17,7 @@ def inject_globals():
 
         # NEW: profil show-more
         "PROFILE_LIST_INITIAL": current_app.config.get("PROFILE_LIST_INITIAL", 5),
-        "PROFILE_LIST_STEPS":   current_app.config.get("PROFILE_LIST_STEPS", [5, 20, -1]),
+        "PROFILE_LIST_STEPS":   current_app.config.get("PROFILE_LIST_STEPS", [10, 20, -1]),
 
         "Gender":             Gender,
         "Speciality":         Speciality,

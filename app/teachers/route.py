@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, url_for, redirect
+from flask import Blueprint, render_template, request, url_for, redirect, flash, current_app
 from app.models.gender     import Gender
 from app.models.speciality import Speciality
 from app.services.teacher_service import TeacherService
 from app.utils.db_errors import handle_integrity_error
+from app.utils.show_more import paginate_show_more
 from sqlalchemy.exc import IntegrityError
 
 teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
@@ -70,7 +71,29 @@ def create():
 @teachers_bp.route("/<string:mat>")
 def detail(mat):
     teacher = teacher_service.getByMatricule(mat)
-    return render_template("teachers/detail.html", matricule=mat)
+    if not teacher:
+        flash("Enseignant introuvable.", "danger")
+        return redirect(url_for("teachers.list"))
+
+    # Cours triés du plus récent au plus ancien
+    all_courses = sorted(teacher.courses, key=lambda c: c.created_at, reverse=True)
+
+    # Pagination progressive (show more)
+    result = paginate_show_more(
+        items   = all_courses,
+        more    = request.args.get("more", 0, type=int),
+        initial = current_app.config.get("PROFILE_LIST_INITIAL", 5),
+        steps   = current_app.config.get("PROFILE_LIST_STEPS", [10, 20, -1]),
+    )
+
+    return render_template(
+        "teachers/detail.html",
+        teacher       = teacher,
+        courses       = result["items"],
+        total_courses = result["total"],
+        has_more      = result["has_more"],
+        next_more     = result["next_more"],
+    )
 
 
 @teachers_bp.route("/<int:id>/edit", methods=["GET", "POST"])

@@ -4,11 +4,17 @@
     ══════════════════════════════════════════════════════
 
     Macros :
-        profile_header() — bandeau sombre commun (type-label, titre, matricule, edit)
-        meta_section()   — colonne gauche : avatar chevauchant + carte caller
-        meta_row()       — ligne icône + label + contenu caller
-        contact_card()   — colonne droite : email, téléphone, adresse, CTA
-        gender_badge()   — badge F/M ; accepte Gender enum (via .value) ou string brute
+        profile_header()        — bandeau sombre commun (type-label, titre, matricule, edit)
+        meta_section()          — colonne gauche : avatar chevauchant + carte caller
+        meta_row()              — ligne icône + label + contenu caller
+        contact_card()          — colonne droite : email, téléphone, adresse, CTA
+        gender_badge()          — badge F/M ; accepte Gender enum (via .value) ou string brute
+
+        course_header()         — bandeau spécifique page cours (grand "Cours" orange + titre)
+        course_teacher_card()   — colonne gauche page cours (teacher card sans avatar chevauchant)
+        course_students_table() — colonne centre page cours (tableau étudiants inscrits + show more)
+        course_info_card()      — colonne droite page cours (date création + CTA)
+        dossier_section()       — colonne centrale réutilisable (titre + compteur + caller)
 
     Note gender_badge :
         Le champ `gender` sur Teacher et Student est un Enum Python (Gender.M / Gender.F).
@@ -18,6 +24,7 @@
 {% from "macros/breadcrumb.html" import breadcrumb %}
 {% from "macros/badges.html"     import id_badge %}
 {% from "macros/avatar.html"     import avatar %}
+{# show_more_button non importé : bouton "Afficher plus" inline dans course_students_table #}
 
 
 {# ══════════════════════════════════════════════════════
@@ -234,4 +241,326 @@
         <span class="material-symbols-outlined text-[14px]">male</span> Masculin
     </div>
 {% endif %}
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   course_header — bandeau spécifique page cours
+
+   Différence vs profile_header :
+       - Gauche : grand "Cours" en orange + sous-titre "Détails du cours"
+       - Droite : titre du cours + code
+
+   Params :
+       title       (str)  — course.title
+       code        (str)  — course.code
+       breadcrumbs (list) — [{label, url}]
+       deco_icon   (str)  — icône de fond (défaut: menu_book)
+══════════════════════════════════════════════════════ #}
+{% macro course_header(title, code, breadcrumbs, deco_icon="menu_book") %}
+
+<div class="bg-[#1C1C2E] pt-6 pb-20 px-8 relative z-10 shadow-md overflow-hidden">
+
+    {# Icône décorative fond #}
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <span class="material-symbols-outlined text-[#4A8C7F] opacity-[0.15]"
+              style="font-size: 280px;">{{ deco_icon }}</span>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto relative z-10">
+
+        {{ breadcrumb(breadcrumbs) }}
+
+        <div class="flex justify-between items-end">
+
+            {# Grand label type — bas gauche #}
+            <div class="flex flex-col">
+                <span class="font-serif text-6xl font-bold text-[#C8923A] leading-none">Cours</span>
+                <span class="text-slate-400 text-xs uppercase tracking-[0.2em] mt-2 font-medium font-body">
+                    Détails du cours
+                </span>
+            </div>
+
+            {# Titre + code — droite #}
+            <div class="text-right">
+                <h2 class="font-serif text-5xl text-[#C8923A] tracking-wide mb-2">{{ title }}</h2>
+                <div class="inline-flex items-center gap-2 justify-end">
+                    <span class="text-slate-400 text-xs uppercase tracking-widest">Code Cours :</span>
+                    <span class="id-badge-wrapper inline-flex items-center gap-1 w-fit cursor-pointer select-none"
+                          onmouseenter="showCopyIcon(this)"
+                          onmouseleave="hideBadgeIcons(this)"
+                          onclick="copyId(this, '{{ code }}')"
+                          title="Copier {{ code }}">
+                        <span class="font-mono text-sm text-white/90 bg-white/10 px-3 py-1 rounded">
+                            {{ code }}
+                        </span>
+                        <span class="badge-icon-slot relative flex-none" style="width:14px;height:14px;">
+                            <span class="badge-copy-icon absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-100">
+                                <span class="material-symbols-outlined text-white/60" style="font-size:12px;line-height:1">content_copy</span>
+                            </span>
+                            <span class="badge-check-icon absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-100">
+                                <span class="material-symbols-outlined text-[#4A8C7F]" style="font-size:12px;line-height:1">check</span>
+                            </span>
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   course_teacher_card — colonne gauche page cours
+
+   Affiche la carte de l'enseignant responsable.
+   Contrairement à meta_section, l'avatar est DANS la card
+   (pas de chevauchement sur le bandeau sombre).
+
+   Params :
+       teacher (Teacher) — objet avec .name, .matricule, .gender, .speciality
+══════════════════════════════════════════════════════ #}
+{% macro course_teacher_card(teacher) %}
+
+<div class="lg:col-span-3 flex flex-col relative z-10 pr-4">
+
+    <h3 class="font-serif text-2xl text-[#1C1C2E] border-b border-sand pb-3 mb-6 mt-16">
+        Responsable Pédagogique
+    </h3>
+
+    <div class="card p-6 flex flex-col gap-6 bg-white/80 backdrop-blur-sm relative">
+
+        {# Lien vers le profil complet de l'enseignant #}
+        <a href="{{ url_for('teachers.detail', mat=teacher.matricule) }}"
+           class="absolute top-4 right-4 size-8 rounded-full bg-[#F3F4F6] text-slate-500
+                  hover:bg-[#4A8C7F] hover:text-white transition-colors duration-200
+                  flex items-center justify-center"
+           title="Voir le profil complet">
+            <span class="material-symbols-outlined text-xl">visibility</span>
+        </a>
+
+        {# Avatar + nom + matricule #}
+        <div class="flex flex-col items-center text-center">
+            <div class="relative size-20 mb-4">
+                <div class="absolute inset-0 rounded-full ring-2 ring-[#C8923A]"></div>
+                {{ avatar(teacher.name, "", size="w-20 h-20", text_size="text-2xl font-serif") }}
+            </div>
+            <h4 class="font-serif text-xl font-bold text-slate-800">{{ teacher.name }}</h4>
+            <div class="mt-2">
+                {{ id_badge(teacher.matricule) }}
+            </div>
+        </div>
+
+        <hr class="border-sand"/>
+
+        {# Genre #}
+        <div class="flex items-start gap-4">
+            <span class="material-symbols-outlined text-slate-400 mt-0.5 font-light shrink-0">person</span>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Genre</p>
+                {{ gender_badge(teacher.gender) }}
+            </div>
+        </div>
+
+        {# Spécialité #}
+        <div class="flex items-start gap-4">
+            <span class="material-symbols-outlined text-slate-400 mt-0.5 font-light shrink-0">verified</span>
+            <div>
+                {% set sp = ev(teacher.speciality) %}
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Spécialité</p>
+                <span class="inline-flex items-center gap-1.5 {{ sp.classes }}
+                             font-mono text-xs font-bold px-2 py-1 rounded">
+                    <span class="material-symbols-outlined" style="font-size: 12px">{{ sp.icon }}</span>
+                    {{ sp.label | upper }}
+                </span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   course_students_table — colonne centrale page cours
+
+   Tableau des étudiants inscrits avec header compteur
+   et bouton "Afficher plus" (pagination par paliers).
+
+   Params :
+       students       (list)     — liste des Student affichés
+       total_students (int)      — nombre total d'inscrits
+       has_more       (bool)     — afficher le bouton "Afficher plus"
+       next_more      (int|None) — valeur du prochain ?more=
+       course_code    (str)      — course.code (pour construire l'URL)
+══════════════════════════════════════════════════════ #}
+{% macro course_students_table(students, total_students, has_more, next_more, course_code) %}
+
+<div class="lg:col-span-6 mt-16 lg:mt-24 space-y-6 px-4">
+
+    {# ── Header compteur ── #}
+    <div class="flex items-end justify-between border-b border-sand pb-3">
+        <h3 class="font-serif text-3xl text-[#1C1C2E]">Liste des Étudiants Inscrits</h3>
+        <div class="flex flex-col items-end text-right">
+            <span class="font-mono text-3xl font-bold text-[#4A8C7F] leading-none">
+                {{ total_students }}
+            </span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                ÉTUDIANTS TOTAUX
+            </span>
+        </div>
+    </div>
+
+    {# ── Tableau ── #}
+    <div class="table-card bg-white/80 backdrop-blur-sm">
+        <table class="w-full text-left border-collapse table-auto">
+            <thead class="bg-white/50 backdrop-blur-md border-b border-sand">
+                <tr>
+                    <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">
+                        N°
+                    </th>
+                    <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                        Matricule
+                    </th>
+                    <th class="w-full px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        Étudiant
+                    </th>
+                    <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                        Genre
+                    </th>
+                    <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right whitespace-nowrap"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-sand">
+                {% for student in students %}
+                <tr class="hover:bg-slate-50 transition-colors">
+
+                    <td class="px-6 py-4 text-sm font-mono text-slate-400 text-center whitespace-nowrap">
+                        {{ loop.index }}
+                    </td>
+
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ id_badge(student.matricule) }}
+                    </td>
+
+                    <td class="px-6 py-4 font-body font-medium text-slate-800 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            {{ avatar(student.name, "", size="w-8 h-8", text_size="text-xs") }}
+                            <span>{{ student.name }}</span>
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ gender_badge(student.gender) }}
+                    </td>
+
+                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                        <a href="{{ url_for('students.detail', mat=student.matricule) }}"
+                           class="text-slate-400 hover:text-[#C8923A] transition-colors">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </a>
+                    </td>
+
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center gap-3 text-slate-400">
+                            <span class="material-symbols-outlined text-4xl opacity-30">group</span>
+                            <p class="text-sm font-medium font-body">Aucun étudiant inscrit.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {# ── Bouton Afficher plus ── #}
+        {% if has_more and next_more is not none %}
+        <a href="{{ url_for('courses.detail', code=course_code) }}?{{ request.args | replace_arg('more', next_more) }}"
+           class="bg-[#F3F4F6] py-2 flex flex-col items-center justify-center
+                  cursor-pointer transition-colors hover:bg-gray-200 border-t border-sand">
+            <span class="font-body font-medium text-[#6B7280] text-sm flex items-center gap-1">
+                Afficher plus
+                <span class="material-symbols-outlined text-[16px]">expand_more</span>
+            </span>
+        </a>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   dossier_section — colonne centrale réutilisable
+
+   Header compteur + titre, puis caller() pour le contenu tabulaire.
+   Réutilisable pour :
+       - cours d'un étudiant  (student/detail)
+       - cours d'un enseignant (teacher/detail)
+       - étudiants d'un cours (course/detail)
+
+   Params :
+       title       (str) — "Dossier Académique", "Liste des Étudiants Inscrits"…
+       count       (int) — nombre total
+       count_label (str) — "COURS TOTAUX", "ÉTUDIANTS TOTAUX"…
+══════════════════════════════════════════════════════ #}
+{% macro dossier_section(title, count, count_label) %}
+
+<div class="space-y-6">
+    <div class="flex items-end justify-between border-b border-sand pb-3">
+        <h3 class="font-serif text-3xl text-[#1C1C2E]">{{ title }}</h3>
+        <div class="flex flex-col items-end text-right">
+            <span class="font-mono text-3xl font-bold text-[#4A8C7F] leading-none">{{ count }}</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                {{ count_label }}
+            </span>
+        </div>
+    </div>
+    {{ caller() }}
+</div>
+
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   course_info_card — colonne droite page cours
+
+   Informations administratives + bouton CTA.
+
+   Params :
+       created_at   (str) — date déjà formatée via | format_date
+       action_label (str) — texte du bouton CTA
+       action_url   (str) — URL du bouton CTA
+       action_color (str) — classe bg Tailwind (défaut: gris ardoise)
+══════════════════════════════════════════════════════ #}
+{% macro course_info_card(created_at, action_label, action_url, action_color="bg-[#64748B]") %}
+
+<div class="lg:col-span-3 mt-16 lg:mt-24 space-y-6 pl-4">
+
+    <h3 class="font-serif text-2xl text-[#1C1C2E] border-b border-sand pb-3">Informations</h3>
+
+    <div class="card p-6 bg-white/80 backdrop-blur-sm">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+            Date de Création
+        </p>
+        <p class="font-mono text-[13px] text-slate-800">{{ created_at }}</p>
+    </div>
+
+    <a href="{{ action_url }}"
+       class="w-full {{ action_color }} text-white px-4 py-3.5 rounded-lg font-medium
+              flex justify-center items-center gap-2
+              hover:brightness-110 transition-all shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">add</span>
+        {{ action_label }}
+    </a>
+
+</div>
+
 {% endmacro %}
