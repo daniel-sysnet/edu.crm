@@ -1,6 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app.services.teacher_service import TeacherService
-from app.models.gender import Gender
+from flask import Blueprint, render_template, request
+from app.models.gender     import Gender
 from app.models.speciality import Speciality
 
 teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
@@ -27,81 +26,74 @@ TEACHER_COURSES = {1: 2, 2: 4, 3: 3, 4: 2, 5: 1, 6: 3, 7: 2, 8: 1, 9: 4}
 
 @teachers_bp.route("/")
 def list():
-    q = request.args.get("q", "").strip() or None
-    gender_str = request.args.get("gender", "").strip() or None
-    speciality_str = request.args.get("speciality", "").strip() or None
-    per_page = request.args.get("per_page", type=int, default=None)
-    page = request.args.get("page", type=int, default=None)
+    from flask import current_app
 
-    gender_filter: Optional[Gender] = Gender(gender_str) if gender_str else None
-    speciality_filter: Optional[Speciality] = Speciality(speciality_str) if speciality_str else None
+    q          = request.args.get("q", "").strip().lower()
+    gender     = request.args.get("gender", "")
+    speciality = request.args.get("speciality", "")
+    per_page   = int(request.args.get("per_page", current_app.config["PAGINATION_DEFAULT"]))
+    page       = int(request.args.get("page", 1))
 
-    teachers = teacher_service.listTeachers(
-        query=q,
-        gender=gender_filter,
-        speciality=speciality_filter,
-        per_page=per_page,
-        page=page,
-    )
+    # --- Filtrage statique ---
+    # TODO: Appeler le service pour récupérer la liste des étudiants filtrées 
+    filtered = TEACHERS
+
+    if q:
+        filtered = [
+            t for t in filtered
+            if q in t["name"].lower()
+            or q in t["email"].lower()
+            or q in t["matricule"].lower()
+        ]
+    if gender:
+        filtered = [t for t in filtered if t["gender"].value == gender]
+
+    if speciality:
+        filtered = [t for t in filtered if t["speciality"].value == speciality]
+    # --- fin filtrage statique ---
+
+    total       = len(filtered)
+    total_pages = max(1, -(-total // per_page))
+    page        = max(1, min(page, total_pages))
+    start       = (page - 1) * per_page
+    items       = filtered[start:start + per_page]
+
+    for t in items:
+        t["course_count"] = TEACHER_COURSES.get(t["id"], 0)
+
     return render_template(
         "teachers/list.html",
-        teachers=teachers,
-        genders=Gender,
-        specialities=Speciality
+        teachers    = items,
+        total       = total,
+        page        = page,
+        per_page    = per_page,
+        total_pages = total_pages,
+        q           = q,
+        gender      = gender,
+        speciality  = speciality,
     )
 
 
-# GET & POST /teachers/create
 @teachers_bp.route("/create", methods=["GET", "POST"])
 def create():
-    if request.method == "POST":
-        name       = request.form.get("name", "").strip()
-        email      = request.form.get("email", "").strip()
-        speciality = request.form.get("speciality", "").strip()
-        gender     = request.form.get("gender", "").strip()
-        birthday   = request.form.get("birthday", "").strip()
-        address    = request.form.get("address", "").strip()
-        phone      = request.form.get("phone", "").strip()
-
-        if not all([name, email, speciality, gender, birthday, address, phone]):
-            flash("Tous les champs sont obligatoires.", "danger")
-            return render_template(
-                "teachers/create.html",
-                genders=Gender, specialities=Speciality
-            )
-        try:
-            teacher = teacher_service.addTeacher(
-                name=name,
-                email=email,
-                speciality=Speciality(speciality),
-                gender=Gender(gender),
-                birthday=date.fromisoformat(birthday),
-                address=address,
-                phone=phone
-            )
-            flash(f"Enseignant '{teacher.name}' ajouté avec succès.", "success")
-            return redirect(url_for("teachers.detail", id=teacher.id))
-        except ValueError as e:
-            flash(str(e), "danger")
-            return render_template(
-                "teachers/create.html",
-                genders=Gender, specialities=Speciality
-            )
-
+    from app.teachers.form import TeacherForm
+    from flask import current_app, flash, redirect
+    form = TeacherForm()
+    if form.validate_on_submit():
+        # TODO: teacher_service.add_teacher() avec Alchemy
+        flash("Enseignant ajouté avec succès.", "success")
+        return redirect(url_for("teachers.list"))
     return render_template(
         "teachers/create.html",
-        genders=Gender, specialities=Speciality
+        form         = form,
+        admin = {"name": "Jean Dupont", "photo_url": ""},
+        PHONE_PREFIX = current_app.config["PHONE_PREFIX"],
     )
 
 
-# GET /teachers/<id>
-@teachers_bp.route("/<int:id>")
-def detail(id: int):
-    teacher = teacher_service.getById(id)
-    if teacher is None:
-        flash("Enseignant introuvable.", "warning")
-        return redirect(url_for("teachers.list"))
-    return render_template("teachers/detail.html", teacher=teacher)
+@teachers_bp.route("/<str:mat>")
+def detail(mat):
+    return render_template("teachers/detail.html")
 
 
 @teachers_bp.route("/<int:id>/edit", methods=["GET", "POST"])
