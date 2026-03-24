@@ -45,10 +45,10 @@ def create():
 
     return render_template("courses/create.html", form=form)
 
-@courses_bp.route("/<int:id>")
-def detail(id):
+@courses_bp.route("/<string:code>")
+def detail(code):
     """Détail d'un cours par son ID technique."""
-    course = course_service.get_by_id(id)
+    course = course_service.get_by_code(code)
     if not course:
         flash("Cours introuvable.", "danger")
         return redirect(url_for("courses.list"))

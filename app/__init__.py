@@ -38,6 +38,21 @@ def create_app(config_name="default"):
         from .filters import format_phone
         return format_phone(number)
 
+    @app.template_filter('format_date')
+    def format_date_filter(value):
+        """
+        Formate un objet date ou datetime en chaîne lisible française.
+        Exemple : datetime(2023, 9, 15) → "15 Sept 2023"
+        Utilisé dans les templates via : {{ course.created_at | format_date }}
+        """
+        if value is None:
+            return ''
+        _months = [
+            'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
+            'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+        ]
+        return f"{value.day} {_months[value.month - 1]} {value.year}"
+
     # ── Context processors ────────────────────────────────────────────────────
     app.context_processor(inject_globals)
 
@@ -53,5 +68,8 @@ def create_app(config_name="default"):
     app.register_blueprint(students_bp)
     app.register_blueprint(teachers_bp)
     app.register_blueprint(courses_bp)
+
+    from .cli import register_cli
+    register_cli(app)
 
     return app
