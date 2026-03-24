@@ -9,7 +9,8 @@ def list():
     """Liste les cours."""
     q = request.args.get("q", "").strip()
     page = request.args.get("page", 1, type=int)
-    per_page = current_app.config.get("PAGINATION_DEFAULT", 8)
+    default_per_page = current_app.config.get("PAGINATION_DEFAULT", 5)
+    per_page = request.args.get("per_page", default_per_page, type=int)
 
     all_results = course_service.list_courses(q)
     
