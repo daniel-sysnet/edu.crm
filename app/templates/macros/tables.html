@@ -1,0 +1,150 @@
+{#
+    Macros pour les tableaux de données.
+
+    table_header(label)        → en-tête de colonne
+    empty_state(message, icon) → ligne vide si aucun résultat
+    table_footer(...)          → pied de tableau : info + paginator
+    paginator(...)             → navigation de pages
+
+    Le pied et le paginator ne s'affichent pas si le tableau est vide.
+#}
+
+
+{# ── En-tête de colonne ── #}
+{# extra_class : classe Tailwind additionnelle ex: "text-center", "text-right" #}
+{% macro table_header(label, extra_class="") %}
+<th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body {{ extra_class }}">
+    {{ label }}
+</th>
+{% endmacro %}
+
+
+{# ── État vide ── #}
+{% macro empty_state(message="Aucune donnée disponible.", icon="inbox") %}
+<tr>
+    <td colspan="100" class="px-4 py-16 text-center">
+        <div class="flex flex-col items-center gap-3">
+            <span class="material-symbols-outlined text-slate-300" style="font-size:48px">{{ icon }}</span>
+            <p class="text-sm text-slate-400 font-body">{{ message }}</p>
+        </div>
+    </td>
+</tr>
+{% endmacro %}
+
+
+{# ── Paginator ──
+    Paramètres :
+        page        — page actuelle (int)
+        total_pages — nombre total de pages (int)
+        per_page    — items par page (int)
+        base_url    — url de base ex: url_for('students.list')
+        args        — dict des args GET actuels (request.args)
+#}
+{% macro paginator(page, total_pages, per_page, base_url, args={}) %}
+
+{% if total_pages > 1 %}
+<div class="flex items-center gap-2">
+
+    {# Flèche précédente #}
+    {% if page > 1 %}
+    <a href="{{ base_url }}?{{ args | replace_arg('page', page - 1) }}"
+       class="flex items-center justify-center w-7 h-7 rounded border border-sand
+              text-slate-400 hover:text-ink hover:border-ink transition-colors">
+        <span class="material-symbols-outlined" style="font-size:16px">chevron_left</span>
+    </a>
+    {% else %}
+    <span class="flex items-center justify-center w-7 h-7 rounded border border-sand/50
+                 text-slate-200 cursor-not-allowed">
+        <span class="material-symbols-outlined" style="font-size:16px">chevron_left</span>
+    </span>
+    {% endif %}
+
+    {# Saisie / sélection de page #}
+    <form method="GET" class="flex items-center gap-1">
+        {% for key, val in args.items() %}
+            {% if key != 'page' %}
+            <input type="hidden" name="{{ key }}" value="{{ val }}"/>
+            {% endif %}
+        {% endfor %}
+        <input
+            type="number"
+            name="page"
+            value="{{ page }}"
+            min="1"
+            max="{{ total_pages }}"
+            onchange="this.form.submit()"
+            class="w-10 text-center text-sm font-mono font-bold text-ink
+                   border border-sand rounded outline-none py-0.5
+                   focus:border-celadon transition-colors
+                   [appearance:textfield]
+                   [&::-webkit-outer-spin-button]:appearance-none
+                   [&::-webkit-inner-spin-button]:appearance-none"
+        />
+    </form>
+
+    <span class="text-sm text-slate-400 font-body">/</span>
+    <span class="text-sm font-mono font-bold text-ink">{{ total_pages }}</span>
+
+    {# Flèche suivante #}
+    {% if page < total_pages %}
+    <a href="{{ base_url }}?{{ args | replace_arg('page', page + 1) }}"
+       class="flex items-center justify-center w-7 h-7 rounded border border-sand
+              text-slate-400 hover:text-ink hover:border-ink transition-colors">
+        <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+    </a>
+    {% else %}
+    <span class="flex items-center justify-center w-7 h-7 rounded border border-sand/50
+                 text-slate-200 cursor-not-allowed">
+        <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+    </span>
+    {% endif %}
+
+</div>
+{% endif %}
+
+{% endmacro %}
+
+
+{# ── Pied de tableau ──
+    N'apparaît que si items est non vide.
+    Fond bg-slate-50 cohérent avec le header du tableau.
+#}
+{% macro table_footer(items, total, page, per_page, total_pages, base_url, args={}, label="éléments") %}
+{% if items %}
+<div class="flex items-center justify-between px-6 py-4
+            border-t border-sand bg-[#F8FAFC]">
+
+    {# Info #}
+    <p class="text-sm text-slate-400 font-body">
+        Affichage de
+        <span class="font-semibold text-ink">{{ (page - 1) * per_page + 1 }}</span>
+        à
+        <span class="font-semibold text-ink">{{ [page * per_page, total] | min }}</span>
+        sur
+        <span class="font-semibold text-ink">{{ total }}</span>
+        {{ label }}
+    </p>
+
+    {# Paginator #}
+    {{ paginator(page, total_pages, per_page, base_url, args) }}
+
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{# ── Bouton "Afficher plus" (profil) — disparaît quand terminé ── #}
+{% macro show_more_button(has_more, next_more, base_url, args={}) %}
+{% if has_more and next_more is not none %}
+    <a
+        href="{{ base_url }}?{{ args | replace_arg('more', next_more) }}"
+        class="bg-[#F3F4F6] py-2 flex flex-col items-center justify-center cursor-pointer
+               transition-colors hover:bg-gray-200 border-t border-sand"
+    >
+        <span class="font-body font-medium text-[#6B7280] text-sm flex items-center gap-1">
+            Afficher plus
+            <span class="material-symbols-outlined text-[16px]">expand_more</span>
+        </span>
+    </a>
+{% endif %}
+{% endmacro %}

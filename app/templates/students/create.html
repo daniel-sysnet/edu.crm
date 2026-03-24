@@ -1,0 +1,146 @@
+{% extends "layouts/form.html" %}
+{% from "macros/breadcrumb.html" import breadcrumb %}
+
+{% block title %}Nouvelle Inscription — {{ APP_NAME }}{% endblock %}
+
+{% block breadcrumb %}
+    {{ breadcrumb([
+        {"label": "Étudiants", "url": url_for("students.list")},
+        {"label": "Nouvelle Inscription"}
+    ]) }}
+{% endblock %}
+
+{% block left_bg %}bg-celadon/10{% endblock %}
+{% block dot_color %}%23387065{% endblock %}
+{% block left_title %}Nouvelle<br/>Inscription{% endblock %}
+{% block left_subtitle %}DOSSIER D'ADMISSION • 2024-2025{% endblock %}
+{% block left_description %}
+    Veuillez remplir soigneusement le formulaire ci-contre pour finaliser
+    l'inscription de l'étudiant dans notre établissement.
+{% endblock %}
+
+{% block form_content %}
+<form method="POST" action="{{ url_for('students.create') }}" class="flex flex-col h-full">
+    {{ form.hidden_tag() }}
+
+    <div class="space-y-10 flex-grow">
+
+        {# ── Informations personnelles ── #}
+        <div>
+            <h3 class="section-title">
+                <span class="material-symbols-outlined text-celadon text-lg">person</span>
+                Informations Personnelles
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                {# Nom complet #}
+                <div class="md:col-span-2">
+                    <label class="input-label" for="{{ form.name.id }}">{{ form.name.label.text }}</label>
+                    {{ form.name(class="input-form py-2", placeholder="Ex: Lucas Bernard") }}
+                    {% for e in form.name.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+
+                {# Genre — radio custom #}
+                <div>
+                    <label class="input-label">{{ form.gender.label.text }}</label>
+                    <div class="grid grid-cols-2 gap-4 mt-3">
+                        {% for sub in form.gender %}
+                        <div class="relative">
+                            {{ sub(class="peer sr-only") }}
+                            <label for="{{ sub.id }}"
+                                   class="flex items-center justify-center gap-2 p-2
+                                          border border-sand rounded cursor-pointer
+                                          hover:bg-slate-50 transition-colors
+                                          peer-checked:border-celadon peer-checked:bg-celadon/5
+                                          peer-checked:ring-1 peer-checked:ring-celadon">
+                                <span class="material-symbols-outlined text-lg
+                                             {{ 'text-blue-600' if sub.data == 'M' else 'text-pink-600' }}">
+                                    {{ 'male' if sub.data == 'M' else 'female' }}
+                                </span>
+                                <span class="text-xs font-medium text-slate-700">{{ sub.label.text }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% for e in form.gender.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+
+                {# Date de naissance #}
+                <div>
+                    <label class="input-label" for="{{ form.dob.id }}">{{ form.dob.label.text }}</label>
+                    {{ form.dob(class="input-form py-2") }}
+                    {% for e in form.dob.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+
+            </div>
+        </div>
+
+        {# ── Coordonnées ── #}
+        <div>
+            <h3 class="section-title">
+                <span class="material-symbols-outlined text-ocre text-lg">contact_mail</span>
+                Coordonnées
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                {# Email #}
+                <div>
+                    <label class="input-label" for="{{ form.email.id }}">{{ form.email.label.text }}</label>
+                    {{ form.email(class="input-form py-2", placeholder="etudiant@exemple.com") }}
+                    {% for e in form.email.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+
+                {# Téléphone #}
+                <div>
+                    <label class="input-label" for="{{ form.phone.id }}">{{ form.phone.label.text }}</label>
+                    <div class="flex items-end">
+                        <span class="inline-flex items-center pb-2 pr-3 text-slate-500 text-sm
+                                     font-mono font-medium border-b-2 border-sand shrink-0">
+                            {{ PHONE_PREFIX }}
+                        </span>
+                        {{ form.phone(class="input-form py-2 flex-1",
+                                      placeholder="000000000",
+                                      maxlength="9",
+                                      inputmode="numeric",
+                                      oninput="formatPhone(this)") }}
+                    </div>
+                    {% for e in form.phone.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+
+                {# Adresse #}
+                <div class="md:col-span-2">
+                    <label class="input-label" for="{{ form.address.id }}">{{ form.address.label.text }}</label>
+                    {{ form.address(class="input-form py-2 h-10 resize-none",
+                                    placeholder="Saisissez l'adresse complète...") }}
+                    {% for e in form.address.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {# Submit #}
+    <div class="mt-12 pt-8">
+        <button type="submit"
+                class="w-full bg-celadon text-white py-4 font-serif text-lg tracking-wide uppercase
+                       hover:bg-[#3d7469] transition-all flex items-center justify-center gap-3
+                       shadow-md hover:shadow-lg">
+            Inscrire l'étudiant
+            <span class="material-symbols-outlined">arrow_right_alt</span>
+        </button>
+    </div>
+
+</form>
+
+<script>
+function formatPhone(input) {
+    var v = input.value.replace(/\D/g, '').slice(0, 9);
+    var out = '';
+    if (v.length > 0) out += v.slice(0, 2);
+    if (v.length > 2) out += ' ' + v.slice(2, 5);
+    if (v.length > 5) out += ' ' + v.slice(5, 7);
+    if (v.length > 7) out += ' ' + v.slice(7, 9);
+    input.value = out;
+}
+</script>
+{% endblock %}

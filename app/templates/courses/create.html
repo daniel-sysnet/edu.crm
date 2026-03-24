@@ -1,0 +1,118 @@
+{% extends "layouts/form.html" %}
+{% from "macros/breadcrumb.html" import breadcrumb %}
+{% from "macros/avatar.html" import avatar %}
+{% from "macros/badges.html" import id_badge %}
+
+{% block title %}Nouveau Cours — {{ APP_NAME }}{% endblock %}
+
+{% block breadcrumb %}
+    {{ breadcrumb([
+        {"label": "Cours", "url": url_for("courses.list")},
+        {"label": "Nouveau Cours"}
+    ]) }}
+{% endblock %}
+
+{% block left_bg %}bg-[#475569]/10{% endblock %}
+{% block dot_color %}%23000000{% endblock %}
+{% block left_title %}Nouveau<br/>Cours{% endblock %}
+{% block left_subtitle %}ACADÉMIQUE • 2024-2025{% endblock %}
+{% block left_description %}
+    Veuillez remplir soigneusement le formulaire ci-contre pour créer un
+    nouveau cours dans notre établissement.
+{% endblock %}
+
+{% block form_content %}
+
+<div class="space-y-10 flex-grow">
+
+    {# ── Recherche enseignant (GET, séparé) ── #}
+    <div>
+        <h3 class="section-title">
+            <span class="material-symbols-outlined text-[#475569] text-lg">assignment_ind</span>
+            Attribution de l'Enseignant
+        </h3>
+
+        <form method="GET" action="{{ url_for('courses.create') }}">
+            <label class="input-label block mb-2">Rechercher par Matricule</label>
+            <div class="relative flex items-stretch border border-sand bg-white focus-within:border-celadon transition-all duration-200">
+                <input
+                    type="text"
+                    name="teacher_search"
+                    value="{{ teacher_search }}"
+                    placeholder="Saisissez un matricule (ex: ENS-001)"
+                    class="w-full bg-transparent border-none focus:ring-0 py-2.5 px-3 text-sm text-slate-700 placeholder-slate-400"
+                />
+                <button type="submit" class="flex items-center justify-center bg-[#F3F4F6] px-3.5 border-l border-sand hover:bg-gray-200 transition-colors">
+                    <span class="material-symbols-outlined text-slate-500">search</span>
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-4">
+            {% if teacher_found %}
+            <div class="border border-sand rounded-lg p-4 bg-[#FDFAF7] flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    {{ avatar(teacher_found.name, teacher_found.get('photo_url',''), size="w-12 h-12", text_size="text-base") }}
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                            <span class="font-body font-medium text-slate-800 text-base">{{ teacher_found.name }}</span>
+                            {{ id_badge(teacher_found.matricule) }}
+                        </div>
+                        <span class="text-sm text-slate-500">
+                            Spécialité : {{ teacher_found.speciality.value }}
+                        </span>
+                    </div>
+                </div>
+                <a href="{{ url_for('courses.create') }}" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#F3F4F6] border border-sand text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined" style="font-size:18px">close</span>
+                </a>
+            </div>
+            {% elif teacher_search and not teacher_found %}
+            <div class="border border-red-200 rounded-lg p-4 bg-red-50 text-center">
+                <p class="text-sm text-red-500 font-body">
+                    Aucun enseignant trouvé pour "{{ teacher_search }}".
+                </p>
+            </div>
+            {% else %}
+            <div class="border-2 border-dashed border-slate-200 rounded-lg p-6 bg-slate-50/50 flex flex-col items-center justify-center text-center min-h-[100px]">
+                <span class="material-symbols-outlined text-slate-300 text-3xl mb-2">person_search</span>
+                <p class="text-sm text-slate-500 font-body">
+                    Recherchez un matricule pour assigner un enseignant
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Formulaire principal POST (création cours) ── #}
+    <form method="POST" action="{{ url_for('courses.create') }}" class="flex flex-col">
+        {{ form.hidden_tag() }}
+        {# ID enseignant utilisé pour la liaison #}
+        {{ form.teacher_id(value=(teacher_found.id|string) if teacher_found else form.teacher_id.data) }}
+
+        <div>
+            <h3 class="section-title">
+                <span class="material-symbols-outlined text-[#475569] text-lg">menu_book</span>
+                Détails du Cours
+            </h3>
+            <div class="md:col-span-2">
+                <label class="input-label" for="{{ form.title.id }}">{{ form.title.label.text }}</label>
+                {{ form.title(class="input-form py-2", placeholder="Ex: Développement Web Avancé") }}
+                {% for e in form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        {% for e in form.teacher_id.errors %}
+            <p class="text-xs text-red-500 mt-2">{{ e }}</p>
+        {% endfor %}
+
+        <div class="mt-12 pt-8 w-full">
+            <button type="submit"
+                    class="w-full bg-[#475569] text-white py-4 font-serif text-lg tracking-wide uppercase hover:bg-slate-700 transition-all flex items-center justify-center gap-3 shadow-md hover:shadow-lg">
+                Créer le cours
+                <span class="material-symbols-outlined">arrow_right_alt</span>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

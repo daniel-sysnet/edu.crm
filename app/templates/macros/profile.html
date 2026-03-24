@@ -1,0 +1,237 @@
+{#
+    ══════════════════════════════════════════════════════
+    macros/profile.html — Composants réutilisables profil
+    ══════════════════════════════════════════════════════
+
+    Macros :
+        profile_header() — bandeau sombre commun (type-label, titre, matricule, edit)
+        meta_section()   — colonne gauche : avatar chevauchant + carte caller
+        meta_row()       — ligne icône + label + contenu caller
+        contact_card()   — colonne droite : email, téléphone, adresse, CTA
+        gender_badge()   — badge F/M ; accepte Gender enum (via .value) ou string brute
+
+    Note gender_badge :
+        Le champ `gender` sur Teacher et Student est un Enum Python (Gender.M / Gender.F).
+        On compare `.value` pour être compatible avec les deux types.
+#}
+
+{% from "macros/breadcrumb.html" import breadcrumb %}
+{% from "macros/badges.html"     import id_badge %}
+{% from "macros/avatar.html"     import avatar %}
+
+
+{# ══════════════════════════════════════════════════════
+   profile_header — bandeau sombre commun
+
+   Params :
+       entity_type  (str)  — "Cours" | "Étudiant" | "Enseignant"
+       entity_icon  (str)  — icône Material Symbols pour le badge type
+       name         (str)  — course.title / teacher.name / student.name
+       code         (str)  — course.code / teacher.matricule / student.matricule
+       breadcrumbs  (list) — [{label, url}]
+       current_page (str)  — dernier item du fil d'ariane
+       deco_icon    (str)  — grande icône de fond
+       edit_url     (str)  — URL bouton stylo bleu (vide = pas de bouton)
+══════════════════════════════════════════════════════ #}
+{% macro profile_header(
+    entity_type,
+    entity_icon,
+    name,
+    code,
+    breadcrumbs,
+    current_page = "Profil Exécutif",
+    deco_icon    = "person",
+    edit_url     = ""
+) %}
+
+<div class="bg-[#1C1C2E] pt-6 pb-20 px-8 relative z-10 shadow-md overflow-hidden">
+
+    {# Icône décorative fond #}
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <span class="material-symbols-outlined text-[#4A8C7F] opacity-[0.15]"
+              style="font-size: 280px;">{{ deco_icon }}</span>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto relative z-10">
+
+        {{ breadcrumb(breadcrumbs + [{"label": current_page}], dark=true) }}
+
+        <div class="flex justify-between items-end">
+
+            {# Badge type — bas gauche #}
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5
+                             text-[#C8923A] border border-[#C8923A]/40 bg-[#C8923A]/10
+                             font-mono text-[11px] font-bold uppercase tracking-[0.15em]
+                             px-3 py-1.5 rounded">
+                    <span class="material-symbols-outlined"
+                          style="font-size:14px; font-variation-settings:'FILL' 0">{{ entity_icon }}</span>
+                    {{ entity_type }}
+                </span>
+            </div>
+
+            {# Titre + matricule/code + bouton edit — droite #}
+            <div class="text-right flex items-start gap-3">
+                <div>
+                    <h2 class="font-serif text-5xl text-[#C8923A] tracking-wide mb-2">
+                        {{ name }}
+                    </h2>
+                    <div class="inline-flex items-center gap-2 justify-end">
+                        <span class="text-slate-400 text-xs uppercase tracking-widest">Matricule :</span>
+                        <span class="font-mono text-sm text-white/90 bg-white/10 px-3 py-1 rounded">
+                            {{ code }}
+                        </span>
+                    </div>
+                </div>
+
+                {# Bouton modifier — bleu, conditionnel #}
+                {% if edit_url %}
+                <a href="{{ edit_url }}"
+                   class="mt-1 flex items-center justify-center size-10 rounded-lg
+                          bg-blue-600 text-white hover:bg-blue-500
+                          transition-colors duration-200 shadow-md shrink-0"
+                   title="Modifier">
+                    <span class="material-symbols-outlined text-xl">edit</span>
+                </a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   meta_section — colonne gauche avec avatar chevauchant
+
+   Params :
+       name          (str)  — teacher.name / student.name
+       photo_url     (str)  — URL photo ou "" pour initiales
+       section_title (str)  — titre de la section
+       caller()             — contenu de la carte (meta_row, etc.)
+══════════════════════════════════════════════════════ #}
+{% macro meta_section(name, photo_url="", section_title="Métadonnées") %}
+
+<div class="lg:col-span-3 flex flex-col relative z-10 pr-4">
+
+    {# Avatar chevauchant le bandeau sombre #}
+    <div class="-mt-16 mb-6 pl-2">
+        <div class="relative size-32">
+            <div class="absolute inset-0 rounded-full ring-4 ring-[#C8923A]"></div>
+            {{ avatar(name, photo_url, size="w-32 h-32", text_size="text-4xl font-serif") }}
+        </div>
+    </div>
+
+    <h3 class="font-serif text-2xl text-[#1C1C2E] border-b border-sand pb-3 mb-4">
+        {{ section_title }}
+    </h3>
+
+    <div class="card p-6 bg-white/80 backdrop-blur-sm flex flex-col gap-5">
+        {{ caller() }}
+    </div>
+
+</div>
+
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   meta_row — ligne de métadonnée
+
+   Params :
+       icon   (str) — icône Material Symbols
+       label  (str) — "Genre", "Âge", "Spécialité", etc.
+       caller()     — valeur libre (badge, texte, etc.)
+══════════════════════════════════════════════════════ #}
+{% macro meta_row(icon, label) %}
+
+<div class="flex items-start gap-4">
+    <span class="material-symbols-outlined text-slate-400 mt-0.5 font-light shrink-0">{{ icon }}</span>
+    <div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{{ label }}</p>
+        {{ caller() }}
+    </div>
+</div>
+
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   contact_card — colonne droite (enseignants / étudiants)
+
+   Params :
+       email        (str)
+       phone        (str)
+       address      (str)  — multiligne avec \n
+       action_label (str)  — texte du CTA
+       action_url   (str)
+       action_color (str)  — classe bg Tailwind ex: "bg-[#C8923A]"
+══════════════════════════════════════════════════════ #}
+{% macro contact_card(email, phone, address, action_label, action_url="#", action_color="bg-[#C8923A]") %}
+
+<div class="lg:col-span-3 mt-16 lg:mt-24 space-y-6 pl-4">
+
+    <h3 class="font-serif text-2xl text-[#1C1C2E] border-b border-sand pb-3">Contact &amp; Support</h3>
+
+    <div class="card p-6 bg-white/80 backdrop-blur-sm flex flex-col divide-y divide-sand">
+
+        {% if email %}
+        <div class="pb-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</p>
+            <a href="mailto:{{ email }}"
+               class="font-mono text-[13px] text-[#4A8C7F] hover:underline break-all">
+                {{ email }}
+            </a>
+        </div>
+        {% endif %}
+
+        {% if phone %}
+        <div class="py-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Téléphone</p>
+            <p class="font-mono text-[13px] text-slate-800">{{ phone }}</p>
+        </div>
+        {% endif %}
+
+        {% if address %}
+        <div class="pt-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Adresse Domicile</p>
+            <p class="font-mono text-[13px] text-slate-800 whitespace-pre-line">{{ address }}</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <a href="{{ action_url }}"
+       class="w-full {{ action_color }} text-white px-4 py-3.5 rounded-lg font-medium
+              flex justify-center items-center gap-2
+              hover:brightness-110 transition-all shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">add</span>
+        {{ action_label }}
+    </a>
+
+</div>
+
+{% endmacro %}
+
+
+{# ══════════════════════════════════════════════════════
+   gender_badge — badge F/M
+
+   IMPORTANT : accepte un Gender Enum (Teacher.gender / Student.gender).
+   On accède à `.value` pour obtenir la chaîne "F" ou "M".
+   Compatible aussi avec une chaîne brute si besoin.
+══════════════════════════════════════════════════════ #}
+{% macro gender_badge(gender) %}
+{% set g = gender.value if gender is not string else gender %}
+{% if g == 'F' %}
+    <div class="inline-flex items-center gap-1.5 bg-[#FDF2F8] text-[#BE185D] font-medium px-2 py-1 rounded-md text-xs">
+        <span class="material-symbols-outlined text-[14px]">female</span> Féminin
+    </div>
+{% else %}
+    <div class="inline-flex items-center gap-1.5 bg-[#EFF6FF] text-[#1D4ED8] font-medium px-2 py-1 rounded-md text-xs">
+        <span class="material-symbols-outlined text-[14px]">male</span> Masculin
+    </div>
+{% endif %}
+{% endmacro %}

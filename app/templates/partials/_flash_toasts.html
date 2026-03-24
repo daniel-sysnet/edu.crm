@@ -1,0 +1,78 @@
+{#
+    Toasts flottants — à inclure UNE SEULE FOIS dans le layout, hors formulaire.
+    Apparaissent en haut à droite, barre de progression, disparition auto.
+
+    Syntaxe : flash("Message.", "success")
+#}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% set success_messages = messages | selectattr('0', 'equalto', 'success') | list %}
+{% if success_messages %}
+
+<div id="toast-container"
+     class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"
+     style="min-width: 300px; max-width: 380px;">
+
+    {% for category, message in success_messages %}
+    <div class="toast pointer-events-auto relative overflow-hidden
+                flex items-start gap-3 px-4 py-3 rounded-lg shadow-soft
+                bg-clean-white border border-emerald-200
+                opacity-0 translate-x-4 transition-all duration-300">
+
+        <span class="material-symbols-outlined text-[18px] mt-0.5 shrink-0 text-emerald-500">
+            check_circle
+        </span>
+
+        <p class="text-sm flex-1 text-emerald-800">{{ message }}</p>
+
+        <button onclick="dismissToast(this.closest('.toast'))"
+                class="text-emerald-400 hover:text-emerald-600 transition-colors shrink-0"
+                aria-label="Fermer">
+            <span class="material-symbols-outlined text-[16px]">close</span>
+        </button>
+
+        <div class="progress-bar absolute bottom-0 left-0 h-0.5 bg-emerald-400 rounded-b-lg"
+             style="width: 100%"></div>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+<script>
+(function () {
+    const DELAY  = 4000;
+    const FADE   = 400;
+    const toasts = document.querySelectorAll('.toast');
+
+    function dismissToast(toast) {
+        toast.style.opacity   = '0';
+        toast.style.transform = 'translateX(1rem)';
+        setTimeout(() => toast.remove(), FADE);
+    }
+
+    window.dismissToast = dismissToast;
+
+    toasts.forEach(function (toast, i) {
+        const bar = toast.querySelector('.progress-bar');
+
+        setTimeout(function () {
+            toast.style.opacity   = '1';
+            toast.style.transform = 'translateX(0)';
+
+            setTimeout(function () {
+                bar.style.transition = 'width ' + DELAY + 'ms linear';
+                bar.style.width      = '0%';
+            }, 50);
+
+            setTimeout(function () {
+                dismissToast(toast);
+            }, DELAY);
+
+        }, i * 150);
+    });
+})();
+</script>
+
+{% endif %}
+{% endwith %}

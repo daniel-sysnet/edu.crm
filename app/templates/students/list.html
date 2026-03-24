@@ -1,0 +1,168 @@
+{% extends "layouts/app.html" %}
+
+{% from "macros/filters.html" import filter_bar %}
+{% from "macros/tables.html"  import table_header, empty_state, table_footer %}
+{% from "macros/badges.html"  import id_badge %}
+{% from "macros/avatar.html"  import avatar %}
+{% from "macros/buttons.html" import btn_icon %}
+
+{% block title %}Étudiants — {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="p-8 w-full max-w-7xl mx-auto space-y-6 pt-12">
+
+    {# ── En-tête de page ── #}
+    <div class="flex items-start justify-between">
+        <div>
+            <h2 class="font-serif text-4xl font-bold text-ink">Liste des Étudiants</h2>
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1 font-body">
+                Gestion des effectifs académiques
+            </p>
+        </div>
+        <a
+            href="{{ url_for('students.create') }}"
+            class="flex items-center gap-2 px-5 py-3 rounded-lg
+                   bg-celadon hover:bg-[#3D756A] text-white
+                   text-sm font-medium font-body
+                   transition-all duration-200 hover:-translate-y-0.5 shadow-sm hover:shadow-md"
+        >
+            <span class="material-symbols-outlined" style="font-size:18px">person_add</span>
+            Inscrire un étudiant
+        </a>
+    </div>
+
+    {# ── Barre de filtres ── #}
+    {% call filter_bar(
+        placeholder  = "Rechercher un étudiant par nom, matricule ou email...",
+        reset_url    = url_for('students.list'),
+        current_q    = q,
+        current_size = per_page
+    ) %}
+        {# Filtre genre #}
+        <div class="flex items-center gap-2 shrink-0">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body">Genre</span>
+            <div class="relative">
+                <select
+                    name="gender"
+                    onchange="this.form.submit()"
+                    class="appearance-none font-body text-sm text-ink
+                           bg-white border border-sand rounded-lg pl-3 pr-7 py-1.5
+                           cursor-pointer outline-none focus:border-celadon transition-colors"
+                >
+                    <option value="" {{ 'selected' if not gender }}>Tous</option>
+                    {% for g in Gender %}
+                    <option value="{{ g.value }}" {{ 'selected' if gender == g.value }}>
+                        {{ ev(g).label }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"
+                      style="font-size:14px">expand_more</span>
+            </div>
+        </div>
+    {% endcall %}
+
+    {# ── Tableau ── #}
+    <div class="card-gallery rounded-xl overflow-hidden">
+
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-sand">
+                    {{ table_header("Matricule") }}
+                    {{ table_header("Nom complet") }}
+                    {{ table_header("Email") }}
+                    {{ table_header("Numéro") }}
+                    {{ table_header("Genre", "text-right") }}
+                    {{ table_header("Cours", extra_class="text-center") }}
+                    {{ table_header("Actions", extra_class="text-center") }}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-sand bg-white">
+                {% if students %}
+                    {% for s in students %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+
+                        {# Matricule #}
+                        <td class="px-4 py-4">
+                            {{ id_badge(s.matricule) }}
+                        </td>
+
+                        {# Avatar + Nom #}
+                        <td class="px-4 py-4">
+                            <div class="flex items-center gap-3">
+                                {{ avatar(s.name, s.get('photo_url', ''), size="w-9 h-9", text_size="text-sm") }}
+                                <span class="text-sm font-semibold text-ink font-body">{{ s.name }}</span>
+                            </div>
+                        </td>
+
+                        {# Email #}
+                        <td class="px-4 py-4 text-sm text-slate-500 font-body">
+                            {{ s.email }}
+                        </td>
+
+                        {# Téléphone #}
+                        <td class="px-4 py-4 text-sm text-ink font-mono">
+                            {{ s.phone | format_phone }}
+                        </td>
+
+                        {# Genre #}
+                        <td class="py-4 text-right">
+                            {% set g = ev(s.gender) %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider font-body {{ g.classes }}">
+                                <span class="material-symbols-outlined" style="font-size:12px;line-height:1">{{ g.icon }}</span>
+                                {{ g.label }}
+                            </span>
+                        </td>
+
+                        {# Nombre de cours #}
+                        <td class="px-4 py-4 text-sm font-mono font-bold text-ink text-center">
+                            {{ s.course_count }}
+                        </td>
+
+                        {# Actions #}
+                        <td class="px-4 py-4">
+                            <div class="flex items-center gap-1">
+                                {# Supprimer #}
+                                <form method="POST" action="{{ url_for('students.delete', id=s.id) }}"
+                                      onsubmit="return confirm('Supprimer {{ s.name }} ?')">
+                                    <button type="submit"
+                                            class="flex items-center justify-center w-8 h-8 rounded
+                                                   text-red-400 hover:bg-red-50 transition-colors"
+                                            title="Supprimer">
+                                        <span class="material-symbols-outlined" style="font-size:18px">delete</span>
+                                    </button>
+                                </form>
+                                {# Détail #}
+                                <a href="{{ url_for('students.detail', id=s.id) }}"
+                                   class="flex items-center justify-center w-8 h-8 rounded
+                                          text-slate-400 hover:bg-slate-100 transition-colors"
+                                   title="Voir le détail">
+                                    <span class="material-symbols-outlined" style="font-size:18px">chevron_right</span>
+                                </a>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    {{ empty_state("Aucun étudiant trouvé.", "school") }}
+                {% endif %}
+            </tbody>
+        </table>
+
+        {# Pied du tableau — masqué si vide #}
+        {{ table_footer(
+            items       = students,
+            total       = total,
+            page        = page,
+            per_page    = per_page,
+            total_pages = total_pages,
+            base_url    = url_for('students.list'),
+            args        = request.args,
+            label       = "étudiants"
+        ) }}
+
+    </div>
+
+</div>
+{% endblock %}

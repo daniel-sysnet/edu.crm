@@ -1,0 +1,88 @@
+{#
+    Macro filter_bar — barre de filtres réutilisable.
+
+    Éléments fixes :
+        - Champ de recherche (placeholder variable)
+        - Sélecteur items par page
+        - Bouton de réinitialisation
+
+    Éléments variables (caller) :
+        - Placés entre le champ de recherche et le sélecteur items/page
+
+    Usage :
+        {% call filter_bar(
+            placeholder  = "Rechercher un étudiant...",
+            reset_url    = url_for('students.list'),
+            current_q    = q,
+            current_size = per_page
+        ) %}
+            <div class="flex items-center gap-3">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Genre</label>
+                <select name="gender" onchange="this.form.submit()"
+                        class="border border-sand focus:ring-celadon focus:border-celadon rounded-lg text-sm py-2 px-4 min-w-[140px]">
+                    ...
+                </select>
+            </div>
+        {% endcall %}
+#}
+
+{% macro filter_bar(placeholder="Rechercher...", reset_url="#", current_q="", current_size=5, pagination_sizes=[5,10,25,50,100]) %}
+<form method="GET"
+      class="bg-white border border-sand p-4 rounded-xl flex flex-wrap gap-4 items-center shadow-sm">
+
+    {# ── Champ de recherche — input avec sa propre bordure ── #}
+    <div class="relative flex-grow min-w-[300px]">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              style="font-size:20px">search</span>
+        <input
+            type="text"
+            name="q"
+            value="{{ current_q }}"
+            placeholder="{{ placeholder }}"
+            class="w-full pl-10 pr-4 py-2.5 text-sm font-body text-ink
+                   border border-sand rounded-lg
+                   focus:outline-none focus:ring-1 focus:ring-celadon focus:border-celadon
+                   transition-all duration-200 placeholder-slate-400"
+        />
+    </div>
+
+    {# ── Selects additionnels (caller) ── #}
+    {{ caller() }}
+
+    {# ── Sélecteur items par page ── #}
+    <div class="flex items-center gap-3">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body whitespace-nowrap">
+            Items par page
+        </label>
+        <select
+            name="per_page"
+            onchange="this.form.submit()"
+            class="border border-sand rounded-lg text-sm text-ink bg-white
+                   py-2 px-2 min-w-[30px]
+                   focus:outline-none focus:ring-1 focus:ring-celadon focus:border-celadon
+                   transition-all duration-200 cursor-pointer"
+        >
+            {% for size in pagination_sizes %}
+            <option value="{{ size }}" {{ 'selected' if current_size == size }}>
+                {{ size }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {# ── Bouton reset ── #}
+    <div class="flex items-center pl-4 border-l border-sand h-10">
+        <a
+            href="{{ reset_url }}"
+            class="flex items-center justify-center w-10 h-10 rounded-lg
+                   bg-[#F3F4F6] border border-sand
+                   text-slate-500 hover:text-ink hover:bg-slate-200
+                   transition-colors duration-150"
+            title="Réinitialiser les filtres"
+        >
+            <span class="material-symbols-outlined" style="font-size:20px">restart_alt</span>
+        </a>
+    </div>
+
+</form>
+{% endmacro %}

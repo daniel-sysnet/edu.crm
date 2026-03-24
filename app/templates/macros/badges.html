@@ -1,0 +1,96 @@
+{#
+    Macros pour les badges.
+
+    badge()        → badge action
+    status_badge() → badge statut enrollment
+    id_badge()     → identifiant copiable
+
+    id_badge — les deux icônes (copy et check) partagent
+    un conteneur de taille fixe (12x12px) avec position relative.
+    Elles se superposent via position absolute → aucun impact sur le flux.
+#}
+
+
+{# ── Badge action ── #}
+{% macro badge(text, color="celadon") %}
+{% if color in ['celadon', 'green'] %}
+    <span class="bg-[#4A8C7F]/10 text-[#4A8C7F] text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">{{ text }}</span>
+{% elif color in ['brique', 'red'] %}
+    <span class="bg-[#B34B4B]/10 text-[#B34B4B] text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">{{ text }}</span>
+{% elif color in ['amber', 'warning'] %}
+    <span class="bg-[#C8923A]/10 text-[#C8923A] text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">{{ text }}</span>
+{% else %}
+    <span class="text-xs font-bold px-3 py-1 rounded uppercase tracking-wider bg-slate-100 text-slate-500">{{ text }}</span>
+{% endif %}
+{% endmacro %}
+
+
+{# ── Badge statut enrollment ── #}
+{% macro status_badge(status) %}
+{% if status == 'active' %}
+    {{ badge('Actif', 'celadon') }}
+{% elif status == 'dropped' %}
+    {{ badge('Abandonné', 'brique') }}
+{% else %}
+    {{ badge(status, 'gray') }}
+{% endif %}
+{% endmacro %}
+
+
+{# ── Badge ID copiable ── #}
+{% macro id_badge(value) %}
+<span
+    class="id-badge-wrapper inline-flex items-center gap-1 w-fit mb-0.5 cursor-pointer select-none"
+    onmouseenter="showCopyIcon(this)"
+    onmouseleave="hideBadgeIcons(this)"
+    onclick="copyId(this, '{{ value }}')"
+    title="Copier {{ value }}"
+>
+    {# Valeur — fond fixe, ne change jamais de taille #}
+    <span class="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">
+        {{ value }}
+    </span>
+
+    {#
+        Conteneur d'icône — taille fixe 12x12px, toujours présent dans le flux.
+        Les deux icônes sont absolute à l'intérieur → zéro impact sur la mise en page.
+    #}
+    <span class="badge-icon-slot relative flex-none" style="width:12px;height:12px;">
+
+        <span class="badge-copy-icon absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-100">
+            <span class="material-symbols-outlined text-slate-400" style="font-size:10px;line-height:1">content_copy</span>
+        </span>
+
+        <span class="badge-check-icon absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-100">
+            <span class="material-symbols-outlined text-[#4A8C7F]" style="font-size:10px;line-height:1">check</span>
+        </span>
+
+    </span>
+</span>
+
+{% if not _copy_script_injected %}
+<script>
+function showCopyIcon(el) {
+    var copy  = el.querySelector('.badge-copy-icon');
+    var check = el.querySelector('.badge-check-icon');
+    if (parseFloat(check.style.opacity || 0) === 0) {
+        copy.style.opacity = '0.6';
+    }
+}
+
+function hideBadgeIcons(el) {
+    el.querySelector('.badge-copy-icon').style.opacity  = '0';
+    el.querySelector('.badge-check-icon').style.opacity = '0';
+}
+
+function copyId(el, value) {
+    var copy  = el.querySelector('.badge-copy-icon');
+    var check = el.querySelector('.badge-check-icon');
+    navigator.clipboard.writeText(value).then(function () {
+        copy.style.opacity  = '0';
+        check.style.opacity = '1';
+    });
+}
+</script>
+{% endif %}
+{% endmacro %}

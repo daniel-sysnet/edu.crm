@@ -1,0 +1,18 @@
+{#
+    Footer commun — fond sombre (#1C1C2E) avec logo-icon centré + copyright.
+#}
+<footer class="bg-[#1C1C2E] py-8 px-8">
+    <div class="max-w-7xl mx-auto flex flex-col items-center justify-center gap-3">
+
+        <img
+            src="{{ url_for('static', filename='img/logo-icon.png') }}"
+            alt="{{ APP_NAME }}"
+            class="h-12 w-auto object-contain"
+        />
+
+        <p class="text-white/30 text-[10px] font-bold tracking-[0.2em] uppercase font-body">
+            &copy; {{ current_year }} {{ APP_NAME }} School Management
+        </p>
+
+    </div>
+</footer>

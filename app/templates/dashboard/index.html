@@ -1,0 +1,168 @@
+{% extends "layouts/app.html" %}
+
+{% from "macros/cards.html"  import stat_card, stat_card_sm %}
+{% from "macros/badges.html" import id_badge, badge %}
+
+{% block title %}Dashboard — {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+
+<div class="p-8 w-full max-w-7xl mx-auto space-y-8 flex-grow pt-12">
+
+    {# ── En-tête ── #}
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="font-display text-3xl font-bold text-[#1C1C2E]">Tableau de Bord</h2>
+            <p class="text-sm text-slate-400 mt-1 uppercase tracking-widest font-medium font-body">
+                Interface d'administration centrale
+            </p>
+        </div>
+    </div>
+
+    {# ── Grandes cartes de stats ── #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {{ stat_card("Total Étudiants",   stats.total_students,  "group",       "bg-celadon") }}
+        {{ stat_card("Total Enseignants", stats.total_teachers,  "person_pin",  "bg-ocre") }}
+        {{ stat_card("Total Cours",       stats.total_courses,   "auto_stories","bg-primary") }}
+    </div>
+
+    {# ── Séparateur ── #}
+    <div class="relative py-4">
+        <div aria-hidden="true" class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-sand/60"></div>
+        </div>
+    </div>
+
+    {# ── Petites cartes secondaires ── #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        {{ stat_card_sm("Cours sans étudiants",   stats.courses_empty,           "warning",     "text-ocre",    true) }}
+        {{ stat_card_sm("Le plus populaire",      stats.most_popular_course,     "stars",        "text-celadon", false) }}
+        {{ stat_card_sm("Étudiants inscrits",     stats.total_enrolled,          "verified",     "text-celadon", true) }}
+        {{ stat_card_sm("Étudiants sans cours",   stats.students_no_course,      "person_off",   "text-ocre",    true) }}
+        {{ stat_card_sm("Enseignants actifs",     stats.active_teachers,         "task_alt",     "text-celadon", true) }}
+    </div>
+
+    {# ── Activités + Actions rapides ── #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12 items-start">
+
+        {# Dernières activités #}
+        <div class="lg:col-span-2 card-gallery rounded-xl overflow-hidden flex flex-col">
+
+            <div class="flex items-center justify-between px-6 py-5 border-b border-sand bg-white">
+                <h3 class="font-display text-lg font-bold text-[#1C1C2E] flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#4A8C7F]">history</span>
+                    Dernières Activités
+                </h3>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-sand">
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Action</th>
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Qui / Quoi</th>
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Détails</th>
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Utilisateur</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-sand bg-white">
+                        {% for activity in activities %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+
+                            <td class="px-6 py-4 text-sm text-slate-500">{{ activity.date }}</td>
+
+                            <td class="px-6 py-4">
+                                {% if activity.action == 'ajouter' %}
+                                    {{ badge('AJOUTER', 'celadon') }}
+                                {% elif activity.action == 'supprimer' %}
+                                    {{ badge('SUPPRIMER', 'brique') }}
+                                {% elif activity.action == 'modifier' %}
+                                    {{ badge('MODIFIER', 'amber') }}
+                                {% else %}
+                                    {{ badge(activity.action | upper, 'gray') }}
+                                {% endif %}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    {{ id_badge(activity.entity_id) }}
+                                    <span class="text-sm font-medium text-[#1C1C2E]">{{ activity.entity_type }}</span>
+                                </div>
+                            </td>
+
+                            <td class="px-6 py-4 text-sm font-medium text-[#1C1C2E]">
+                                {{ activity.details }}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    {{ id_badge('#' ~ activity.user_id) }}
+                                    <span class="text-sm font-medium text-[#1C1C2E]">{{ activity.user_name }}</span>
+                                </div>
+                            </td>
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-slate-400 text-sm font-body">
+                                Aucune activité récente.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        {# Actions rapides #}
+        <div class="card-gallery rounded-xl flex flex-col h-auto">
+
+            <div class="p-6 border-b border-sand bg-white">
+                <h3 class="font-display text-lg font-bold text-[#1C1C2E] flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#C8923A]">bolt</span>
+                    Actions Rapides
+                </h3>
+            </div>
+
+            <div class="p-6 space-y-4">
+
+                <a href="{{ url_for('students.create') }}"
+                   class="w-full quick-action-btn bg-[#4A8C7F] text-left">
+                    <div class="w-10 h-10 flex-none rounded-lg bg-white/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white">person_add</span>
+                    </div>
+                    <span class="text-sm font-medium font-body uppercase tracking-wide">
+                        Inscrire un étudiant
+                    </span>
+                </a>
+
+                <a href="{{ url_for('teachers.create') }}"
+                   class="w-full quick-action-btn bg-[#C8923A] text-left">
+                    <div class="w-10 h-10 flex-none rounded-lg bg-white/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white">school</span>
+                    </div>
+                    <span class="text-sm font-medium font-body uppercase tracking-wide">
+                        Ajouter un enseignant
+                    </span>
+                </a>
+
+                <a href="{{ url_for('courses.create') }}"
+                   class="w-full quick-action-btn bg-[#475569] text-left">
+                    <div class="w-10 h-10 flex-none rounded-lg bg-white/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white">library_add</span>
+                    </div>
+                    <span class="text-sm font-medium font-body uppercase tracking-wide">
+                        Créer un nouveau cours
+                    </span>
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,7 @@
+{#
+    Partial réutilisable : copyright avec année dynamique.
+    Injecté via context_processor → current_year disponible partout.
+#}
+<p class="text-xs text-slate-400 font-sans text-center">
+    &copy; {{ current_year }} {{ APP_NAME }}. Système de gestion interne.
+</p>

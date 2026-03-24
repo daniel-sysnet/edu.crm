@@ -1,0 +1,83 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+
+{#
+    Correspondance catégories → styles visuels.
+    Catégories supportées : success | error | danger | warning | info
+    "danger" est un alias de "error" (compatibilité Flask/WTForms).
+#}
+
+<div class="space-y-2 mb-6" id="flash-container">
+    {% for category, message in messages %}
+
+        {# Styles par catégorie #}
+        {% if category == 'success' %}
+            {% set bg         = 'bg-emerald-50' %}
+            {% set border     = 'border-emerald-200' %}
+            {% set text_color = 'text-emerald-800' %}
+            {% set icon_color = 'text-emerald-500' %}
+            {% set icon       = 'check_circle' %}
+
+        {% elif category in ['error', 'danger'] %}
+            {% set bg         = 'bg-red-50' %}
+            {% set border     = 'border-red-200' %}
+            {% set text_color = 'text-red-800' %}
+            {% set icon_color = 'text-red-500' %}
+            {% set icon       = 'error' %}
+
+        {% elif category == 'warning' %}
+            {% set bg         = 'bg-amber-50' %}
+            {% set border     = 'border-amber-200' %}
+            {% set text_color = 'text-amber-800' %}
+            {% set icon_color = 'text-amber-500' %}
+            {% set icon       = 'warning' %}
+
+        {% else %}{# info par défaut #}
+            {% set bg         = 'bg-blue-50' %}
+            {% set border     = 'border-blue-200' %}
+            {% set text_color = 'text-blue-800' %}
+            {% set icon_color = 'text-blue-500' %}
+            {% set icon       = 'info' %}
+        {% endif %}
+
+        <div class="flash-msg flex items-start gap-3 px-4 py-3 rounded-lg border animate-fade-slide-in
+                    {{ bg }} {{ border }}">
+
+            {# Icône #}
+            <span class="material-icons-outlined text-[18px] mt-0.5 shrink-0 {{ icon_color }}">
+                {{ icon }}
+            </span>
+
+            {# Message #}
+            <p class="text-sm flex-1 {{ text_color }}">{{ message }}</p>
+
+            {# Bouton fermer #}
+            <button
+                onclick="this.closest('.flash-msg').remove()"
+                class="{{ icon_color }} opacity-50 hover:opacity-100 transition-opacity shrink-0"
+                aria-label="Fermer"
+            >
+                <span class="material-icons-outlined text-[16px]">close</span>
+            </button>
+
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    (function () {
+        const DELAY   = 4000;
+        const FADE    = 500;
+        const msgs = document.querySelectorAll('.flash-msg');
+        msgs.forEach(function (el) {
+            setTimeout(function () {
+                el.style.transition = 'opacity ' + FADE + 'ms ease';
+                el.style.opacity    = '0';
+                setTimeout(function () { el.remove(); }, FADE);
+            }, DELAY);
+        });
+    })();
+</script>
+
+{% endif %}
+{% endwith %}

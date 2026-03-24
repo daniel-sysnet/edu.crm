@@ -1,0 +1,185 @@
+{% extends "layouts/app.html" %}
+
+{% from "macros/filters.html" import filter_bar %}
+{% from "macros/tables.html"  import table_header, empty_state, table_footer %}
+{% from "macros/badges.html"  import id_badge %}
+{% from "macros/avatar.html"  import avatar %}
+
+{% block title %}Enseignants — {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="p-8 w-full max-w-7xl mx-auto space-y-6 pt-12">
+
+    {# ── En-tête ── #}
+    <div class="flex items-end justify-between">
+        <div>
+            <h2 class="font-serif text-5xl text-ink">Liste des Enseignants</h2>
+            <p class="text-sm text-slate-400 mt-2 uppercase tracking-widest font-medium font-body">
+                Gestion du corps professoral
+            </p>
+        </div>
+        <a
+            href="{{ url_for('teachers.create') }}"
+            class="flex items-center gap-2 px-6 py-3 rounded-lg
+                   bg-ocre hover:bg-[#b07d2c] text-white
+                   text-sm font-medium font-body
+                   transition-all duration-200 hover:-translate-y-0.5 shadow-sm"
+        >
+            <span class="material-symbols-outlined" style="font-size:20px">person_add</span>
+            Ajouter un enseignant
+        </a>
+    </div>
+
+    {# ── Barre de filtres ── #}
+    {% call filter_bar(
+        placeholder      = "Rechercher un enseignant par nom, matricule ou email...",
+        reset_url        = url_for('teachers.list'),
+        current_q        = q,
+        current_size     = per_page,
+        pagination_sizes = PAGINATION_SIZES
+    ) %}
+        {# Filtre genre #}
+        <div class="flex items-center gap-3">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body">Genre</label>
+            <select
+                name="gender"
+                onchange="this.form.submit()"
+                class="border border-sand rounded-lg text-sm py-2 px-4 min-w-[140px] bg-white
+                       focus:outline-none focus:ring-1 focus:ring-celadon focus:border-celadon
+                       transition-all duration-200"
+            >
+                <option value="" {{ 'selected' if not gender }}>Tous</option>
+                {% for g in Gender %}
+                <option value="{{ g.value }}" {{ 'selected' if gender == g.value }}>
+                    {{ ev(g).label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# Filtre spécialité #}
+        <div class="flex items-center gap-3">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body">Spécialité</label>
+            <select
+                name="speciality"
+                onchange="this.form.submit()"
+                class="border border-sand rounded-lg text-sm py-2 px-4 min-w-[140px] bg-white
+                       focus:outline-none focus:ring-1 focus:ring-celadon focus:border-celadon
+                       transition-all duration-200"
+            >
+                <option value="" {{ 'selected' if not speciality }}>Tous</option>
+                {% for s in Speciality %}
+                <option value="{{ s.value }}" {{ 'selected' if speciality == s.value }}>
+                    {{ ev(s).label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endcall %}
+
+    {# ── Tableau ── #}
+    <div class="card-gallery rounded-xl overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-sand">
+                    {{ table_header("Matricule") }}
+                    {{ table_header("Nom complet") }}
+                    {{ table_header("Email") }}
+                    {{ table_header("Numéro") }}
+                    {{ table_header("Genre", "text-right") }}
+                    {{ table_header("Spécialité", "text-center") }}
+                    {{ table_header("Cours") }}
+                    {{ table_header("Actions", "text-center") }}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-sand bg-white">
+                {% if teachers %}
+                    {% for t in teachers %}
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+
+                        {# Matricule #}
+                        <td class="px-6 py-4">
+                            {{ id_badge(t.matricule) }}
+                        </td>
+
+                        {# Avatar + Nom #}
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                {{ avatar(t.name, t.get('photo_url', ''), size="w-8 h-8", text_size="text-xs") }}
+                                <span class="font-body font-medium text-slate-800">{{ t.name }}</span>
+                            </div>
+                        </td>
+
+                        {# Email #}
+                        <td class="px-6 py-4 text-sm text-slate-500 font-body">
+                            {{ t.email }}
+                        </td>
+
+                        {# Téléphone #}
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            {{ t.phone | format_phone }}
+                        </td>
+
+                        {# Genre #}
+                        <td class="py-4 text-right">
+                            {% set g = ev(t.gender) %}
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider {{ g.classes }}">
+                                <span class="material-symbols-outlined" style="font-size:14px">{{ g.icon }}</span>
+                                {{ g.label }}
+                            </span>
+                        </td>
+
+                        {# Spécialité #}
+                        <td class="px-6 py-4 text-right">
+                            {% set sp = ev(t.speciality) %}
+                            <span class="inline-block text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider {{ sp.classes }}">
+                                {{ t.speciality.value }}
+                            </span>
+                        </td>
+
+                        {# Nombre de cours #}
+                        <td class="px-6 py-4 text-center text-sm font-semibold text-slate-700 text-center">
+                            {{ t.course_count }}
+                        </td>
+
+                        {# Actions #}
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-3">
+                                <form method="POST" action="{{ url_for('teachers.delete', id=t.id) }}"
+                                      onsubmit="return confirm('Supprimer {{ t.name }} ?')">
+                                    <button type="submit"
+                                            class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                                            title="Supprimer">
+                                        <span class="material-symbols-outlined text-xl">delete</span>
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('teachers.detail', id=t.id) }}"
+                                   class="text-slate-400 hover:text-ocre p-1.5 rounded-lg transition-colors">
+                                    <span class="material-symbols-outlined text-xl">chevron_right</span>
+                                </a>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    {{ empty_state("Aucun enseignant trouvé.", "person_off") }}
+                {% endif %}
+            </tbody>
+        </table>
+
+        {{ table_footer(
+            items       = teachers,
+            total       = total,
+            page        = page,
+            per_page    = per_page,
+            total_pages = total_pages,
+            base_url    = url_for('teachers.list'),
+            args        = request.args,
+            label       = "enseignants"
+        ) }}
+
+    </div>
+
+</div>
+{% endblock %}
