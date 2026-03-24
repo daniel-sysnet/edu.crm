@@ -1,0 +1,53 @@
+{% extends "layouts/app.html" %}
+
+{% block content %}
+<div class="py-8 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+
+    {# Breadcrumb #}
+    <div class="w-full max-w-6xl">
+        {% block breadcrumb %}{% endblock %}
+    </div>
+
+    {# Card splitté #}
+    <div class="w-full max-w-6xl bg-white border border-sand shadow-glass overflow-hidden flex flex-col md:flex-row">
+
+        {# ── Panneau gauche ── #}
+        <div class="w-full md:w-[35%] p-12 flex flex-col justify-between
+                    border-b md:border-b-0 md:border-r border-sand relative
+                    {% block left_bg %}bg-celadon/10{% endblock %}">
+
+            {# Motif de fond #}
+            <div class="absolute inset-0 opacity-10 pointer-events-none"
+                 style="background-image: url('data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'{% block dot_color %}%23387065{% endblock %}\' fill-opacity=\'1\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'3\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E')">
+            </div>
+
+            {# Titre #}
+            <div class="relative z-10">
+                <h2 class="font-serif text-5xl md:text-6xl text-ink font-bold leading-tight mb-6">
+                    {% block left_title %}{% endblock %}
+                </h2>
+            </div>
+
+            {# Bas du panneau #}
+            <div class="flex gap-4 relative z-10">
+                <p class="writing-vertical text-xs text-slate-500 uppercase tracking-[0.3em]
+                           font-medium border-l border-sand pl-4">
+                    {% block left_subtitle %}DOSSIER • 2024-2025{% endblock %}
+                </p>
+                <div class="text-sm text-slate-600 font-serif leading-relaxed mt-auto max-w-[200px]">
+                    {% block left_description %}
+                        Veuillez remplir soigneusement le formulaire ci-contre.
+                    {% endblock %}
+                </div>
+            </div>
+
+        </div>
+
+        {# ── Panneau droit : formulaire ── #}
+        <div class="w-full md:w-[65%] bg-white p-8 md:p-12 flex flex-col">
+            {% block form_content %}{% endblock %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

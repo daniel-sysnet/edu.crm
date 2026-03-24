@@ -1,45 +1,21 @@
 from datetime import datetime
-from app.models.action import Action
-from app.models.user import User
+from app.extensions import db
+from app.models.action_type import ActionType
+from app.models.entity_type import EntityType
 
 
-class Activity:
-    counter: int = 0
+class Activity(db.Model):
+    __tablename__ = "activities"
 
-    def __init__(self, action: Action, model_type: str, model_id: int, details: str, user: User):
-        Activity.counter += 1
-        self.__id = Activity.counter
-        self.__createdAt = datetime.now()
-        self.__action = action
-        self.__model_type = model_type
-        self.__model_id = model_id
-        self.__details = details
-        self.__user = user
+    id          = db.Column(db.Integer,          primary_key=True)
+    action      = db.Column(db.Enum(ActionType), nullable=False)
+    entity_type = db.Column(db.Enum(EntityType), nullable=False)
+    entity_id   = db.Column(db.String(20),       nullable=False)
+    details     = db.Column(db.String(200),      nullable=True)
+    created_at  = db.Column(db.DateTime,         default=datetime.utcnow, nullable=False)
 
-    @property
-    def id(self) -> int:
-        return self.__id
+    user_id     = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user        = db.relationship("User", backref="activities")
 
-    @property
-    def createdAt(self) -> datetime:
-        return self.__createdAt
-
-    @property
-    def action(self) -> Action:
-        return self.__action
-
-    @property
-    def model_type(self) -> str:
-        return self.__model_type
-
-    @property
-    def model_id(self) -> int:
-        return self.__model_id
-
-    @property
-    def details(self) -> str:
-        return self.__details
-
-    @property
-    def user(self) -> User:
-        return self.__user
+    def __repr__(self) -> str:
+        return f"<Activity {self.action.value} {self.entity_type.value} {self.entity_id}>"

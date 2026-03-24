@@ -1,0 +1,129 @@
+{% extends "layouts/app.html" %}
+
+{% from "macros/filters.html" import filter_bar %}
+{% from "macros/tables.html"  import table_header, empty_state, table_footer %}
+{% from "macros/badges.html"  import id_badge %}
+{% from "macros/avatar.html"  import avatar %}
+
+{% block title %}Cours — {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="p-8 w-full max-w-7xl mx-auto space-y-6 pt-12">
+
+    {# ── En-tête ── #}
+    <div class="flex items-end justify-between">
+        <div>
+            <h2 class="font-serif text-5xl text-ink">Liste des Cours</h2>
+            <p class="text-sm text-slate-400 mt-2 uppercase tracking-widest font-medium font-body">
+                Gestion des programmes d'études
+            </p>
+        </div>
+        <a
+            href="{{ url_for('courses.create') }}"
+            class="flex items-center gap-2 px-6 py-3 rounded-lg
+                   bg-ink hover:bg-ink/80 text-white
+                   text-sm font-medium font-body
+                   transition-all duration-200 hover:-translate-y-0.5 shadow-sm"
+        >
+            <span class="material-symbols-outlined" style="font-size:20px">add_box</span>
+            Créer un cours
+        </a>
+    </div>
+
+    {# ── Barre de filtres — pas de selects additionnels ── #}
+    {% call filter_bar(
+        placeholder      = "Rechercher un cours par titre ou code...",
+        reset_url        = url_for('courses.list'),
+        current_q        = q,
+        current_size     = per_page,
+        pagination_sizes = PAGINATION_SIZES
+    ) %}
+        {# Pas de filtre additionnel pour les cours #}
+    {% endcall %}
+
+    {# ── Tableau ── #}
+    <div class="card-gallery rounded-xl overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-sand">
+                    {{ table_header("Code") }}
+                    {{ table_header("Titre du cours") }}
+                    {{ table_header("Enseignant") }}
+                    {{ table_header("Étudiants", "text-center") }}
+                    {{ table_header("Actions", extra_class="text-center") }}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-sand bg-white">
+                {% if courses %}
+                    {% for c in courses %}
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+
+                        {# Code cours #}
+                        <td class="px-6 py-4">
+                            {{ id_badge(c.code) }}
+                        </td>
+
+                        {# Titre #}
+                        <td class="px-6 py-4 font-body font-medium text-slate-800">
+                            {{ c.title }}
+                        </td>
+
+                        {# Enseignant : avatar + nom + matricule #}
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                {{ avatar(c.teacher.name, '', size="w-8 h-8", text_size="text-xs") }}
+                                <div class="flex flex-col">
+                                    <span class="font-body font-medium text-slate-800 text-sm">
+                                        {{ c.teacher.name }}
+                                    </span>
+                                    {{ id_badge(c.teacher.matricule) }}
+                                </div>
+                            </div>
+                        </td>
+
+                        {# Nombre d'étudiants #}
+                        <td class="px-6 py-4 text-sm font-semibold text-slate-700 text-center">
+                            {{ c.students | length }}
+                        </td>
+
+                        {# Actions #}
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-3">
+                                <form method="POST" action="{{ url_for('courses.delete', id=c.id) }}"
+                                      onsubmit="return confirm('Supprimer ce cours ?')">
+                                    <button type="submit"
+                                            class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                                            title="Supprimer">
+                                        <span class="material-symbols-outlined text-xl">delete</span>
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('courses.detail', code=c.code) }}"
+                                   class="text-slate-400 hover:text-celadon p-1.5 rounded-lg transition-colors">
+                                    <span class="material-symbols-outlined text-xl">chevron_right</span>
+                                </a>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    {{ empty_state("Aucun cours trouvé.", "menu_book") }}
+                {% endif %}
+            </tbody>
+        </table>
+
+        {{ table_footer(
+            items       = courses,
+            total       = total,
+            page        = page,
+            per_page    = per_page,
+            total_pages = total_pages,
+            base_url    = url_for('courses.list'),
+            args        = request.args,
+            label       = "cours"
+        ) }}
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,39 +1,100 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from app.services.course__service import CourseService
-from app.students.route import student_service 
-from app.teachers.route import teacher_service 
 
-courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
-course_service = CourseService(student_service, teacher_service)
+courses_bp = Blueprint("courses", __name__, url_prefix="/courses")
+course_service = CourseService()
 
-@courses_bp.route('/')
-def list_courses():
-    courses = course_service.list_courses()
-    return render_template('courses/list.html', courses=courses)
+@courses_bp.route("/")
+def list():
+    """Liste les cours."""
+    q = request.args.get("q", "").strip()
+    page = request.args.get("page", 1, type=int)
+    per_page = current_app.config.get("PAGINATION_DEFAULT", 8)
 
-@courses_bp.route('/create', methods=['GET', 'POST'])
-def create():
-    if request.method == 'POST':
-        title = request.form.get('title')
-        try:
-            t_id = int(request.form.get('teacher_id'))
-            course, message = course_service.add_course(title, t_id)
-            
-            if course:
-                flash(message, "success")
-                return redirect(url_for('courses.list_courses'))
-            else:
-                flash(message, "danger")
-        except ValueError:
-            flash("L'ID de l'enseignant doit être un nombre.", "danger")
+    all_results = course_service.list_courses(q)
     
-    teachers = teacher_service.list_teachers()
-    return render_template('courses/create.html', teachers=teachers)
+    total = len(all_results)
+    total_pages = max(1, -(-total // per_page))
+    start = (page - 1) * per_page
+    items = all_results[start:start + per_page]
 
-@courses_bp.route('/delete/<int:id>')
+    return render_template(
+        "courses/list.html",
+        courses=items,
+        total=total,
+        per_page=per_page,
+        page=page,
+        total_pages=total_pages,
+        q=q
+    )
+
+# route.py
+@courses_bp.route("/create", methods=["GET", "POST"])
+def create():
+    from app.courses.form import CourseForm
+    from app.services.teacher_service import TeacherService
+
+    form = CourseForm()
+    teacher_service = TeacherService()
+
+    # Recherche enseignant par matricule
+    teacher_search = (request.args.get("teacher_search") or
+                      request.form.get("teacher_search") or "").strip()
+    teacher_found = None
+    if teacher_search:
+        teacher_found = teacher_service.getByMatricule(teacher_search)
+
+    if teacher_found:
+        form.teacher_id.data = str(teacher_found.id)
+
+    if form.validate_on_submit():
+        course_service.add_course(
+            title=form.title.data,
+            teacher_id=form.teacher_id.data
+        )
+        flash("Cours créé avec succès.", "success")
+        return redirect(url_for("courses.list"))
+
+    return render_template(
+        "courses/create.html",
+        form           = form,
+        teacher_search = teacher_search,
+        teacher_found  = teacher_found,
+    )
+
+@courses_bp.route("/<string:code>")
+def detail(code):
+    """Détail d'un cours par son ID technique."""
+    course = course_service.get_by_code(code)
+    if not course:
+        flash("Cours introuvable.", "danger")
+        return redirect(url_for("courses.list"))
+    return render_template("courses/detail.html", course=course)
+
+@courses_bp.route("/delete/<int:id>", methods=["POST"])
 def delete(id):
+    """Suppression d'un cours."""
     if course_service.delete_course(id):
-        flash(f"Cours {id} supprimé.", "info")
+        flash("Le cours a été supprimé.", "success")
     else:
-        flash("Erreur : cours introuvable.", "danger")
-    return redirect(url_for('courses.list_courses'))
+        flash("Erreur lors de la suppression.", "danger")
+    return redirect(url_for("courses.list"))
+
+@courses_bp.route("/<string:code>/assign", methods=["GET", "POST"])
+def assign(code):
+    """Inscription/affectation d'un étudiant au cours."""
+    if request.method == "POST":
+        student_id = request.form.get("student_id")
+        course_id = request.form.get("course_id")
+        if course_service.assign_student_to_course(course_id, student_id):
+            flash("Étudiant inscrit au cours.", "success")
+        else:
+            flash("Erreur lors de l'inscription.", "danger")
+        return redirect(url_for("courses.assign", code=code))
+    
+    course = course_service.get_by_code(code)
+    if not course:
+        flash("Cours introuvable.", "danger")
+        return redirect(url_for("courses.list"))
+        
+    return render_template("courses/assign.html", course=course)

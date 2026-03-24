@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="579b9eea-76af-4bf6-a40b-bf98936c7a0a" name="Changes" comment="" />
+    <list default="true" id="579b9eea-76af-4bf6-a40b-bf98936c7a0a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/app/templates/students/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/students/list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/teachers/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/teachers/list.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -28,9 +31,9 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "Reverting in main",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/MADD/Documents/Etudes_Projets/Code_&_Developement/Flask_Python_Cours/edu.crm",
+    "last_opened_file_path": "C:/Users/ouedr/Work-Storage/Projets/edu.crm",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -43,8 +46,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.30387.127" />
-        <option value="bundled-python-sdk-3944b0c99280-6d6dccd035ac-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.30387.127" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.30387.173" />
+        <option value="bundled-python-sdk-4762d8aabb82-6d6dccd035ac-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.30387.173" />
       </set>
     </attachedChunks>
   </component>
@@ -57,6 +60,8 @@
       <updated>1771981284489</updated>
       <workItem from="1771981285672" duration="626000" />
       <workItem from="1772322928425" duration="52000" />
+      <workItem from="1774243553925" duration="86000" />
+      <workItem from="1774333733513" duration="335000" />
     </task>
     <servers />
   </component>

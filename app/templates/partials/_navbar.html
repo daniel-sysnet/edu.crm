@@ -1,0 +1,83 @@
+{#
+    Navbar commune — incluse dans layouts/app.html.
+    Détection onglet actif via request.blueprint.
+    Avatar : initiales colorées ou photo via macros/avatar.html
+#}
+
+{% from "macros/avatar.html" import avatar %}
+
+{% set active = request.blueprint %}
+
+<nav class="bg-[#1C1C2E] h-16 sticky top-0 z-50 px-8 flex items-center shadow-2xl">
+
+    {# ── Logo image ── #}
+    <div class="flex-none">
+        <a href="{{ url_for('dashboard.index') }}">
+            <img
+                src="{{ url_for('static', filename='img/logo.png') }}"
+                alt="{{ APP_NAME }}"
+                class="h-10 w-auto object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity"
+            />
+        </a>
+    </div>
+
+    {# ── Liens de navigation ── #}
+    <div class="flex-grow flex justify-center">
+        <div class="hidden md:flex items-center gap-8">
+            {% set nav_items = [
+                ('dashboard', 'Dashboard',   'dashboard.index'),
+                ('students',  'Étudiants',   'students.list'),
+                ('teachers',  'Enseignants', 'teachers.list'),
+                ('courses',   'Cours',       'courses.list'),
+            ] %}
+            {% for blueprint, label, endpoint in nav_items %}
+            <a
+                href="{{ url_for(endpoint) }}"
+                class="font-body font-medium text-sm transition-colors pb-1
+                       {{ 'text-white border-b-2 border-[#C8923A]' if active == blueprint
+                          else 'text-white/70 hover:text-white' }}"
+            >
+                {{ label }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Profil + déconnexion ── #}
+    <div class="flex-none flex items-center gap-6">
+        <div class="flex items-center gap-4 pl-6 border-l border-white/10">
+
+            <div class="flex items-center gap-3">
+                {# Avatar : photo ou initiales #}
+                {{ avatar(
+                    session_user.username,
+                    session_user.get('photo_url', ''),
+                    size="w-9 h-9",
+                    text_size="text-xs"
+                ) }}
+
+                <div class="flex flex-col">
+                    <span class="text-white font-medium text-sm leading-tight font-body">
+                        {{ session_user.username }}
+                    </span>
+                    <span class="text-slate-400 text-[11px] leading-tight font-medium font-body">
+                        Administrateur
+                    </span>
+                </div>
+            </div>
+
+            {# Bouton déconnexion #}
+            <a
+                href="{{ url_for('auth.logout') }}"
+                class="ml-2 flex items-center justify-center w-9 h-9 rounded-lg
+                       bg-logout-red text-white hover:bg-red-500
+                       transition-colors duration-200 shadow-sm"
+                title="Déconnexion"
+            >
+                <span class="material-symbols-outlined text-xl">logout</span>
+            </a>
+
+        </div>
+    </div>
+
+</nav>

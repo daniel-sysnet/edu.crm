@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, flash, redirect, url_for
-from app.auth.forms import LoginForm
+from app.auth.form import LoginForm
 from app.auth.session import login_user, get_session_user
 from app.services.auth_service import AuthService
 

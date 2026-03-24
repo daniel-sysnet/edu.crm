@@ -1,102 +1,84 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app.services.teacher_service import TeacherService
-from app.models.genre import Genre
+from flask import Blueprint, render_template, request, url_for, redirect
+from app.models.gender     import Gender
 from app.models.speciality import Speciality
-from typing import Optional
-from datetime import date
+from app.services.teacher_service import TeacherService
 
-teachers_bp = Blueprint(
-    "teachers",
-    __name__,
-    template_folder="../../templates/teachers",
-    url_prefix="/teachers",
-)
-
+teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
 teacher_service = TeacherService()
 
 
-# GET /teachers
 @teachers_bp.route("/")
 def list():
-    query         = request.args.get("query", "").strip() or None
-    genre_str     = request.args.get("genre", "").strip() or None
-    specialty_str = request.args.get("specialty", "").strip() or None
+    from flask import current_app
 
-    genre_filter:     Optional[Genre]      = Genre(genre_str)           if genre_str      else None
-    specialty_filter: Optional[Speciality] = Speciality(specialty_str)  if specialty_str  else None
+    q          = request.args.get("q", "").strip().lower()
+    gender     = request.args.get("gender", "")
+    speciality = request.args.get("speciality", "")
+    per_page   = int(request.args.get("per_page", current_app.config["PAGINATION_DEFAULT"]))
+    page       = int(request.args.get("page", 1))
 
-    teachers = teacher_service.listTeachers(
-        query=query,
-        genre=genre_filter,
-        specialty=specialty_filter
-    )
+    filtered = teacher_service.listTeachers(query=q, gender=Gender(gender) if gender else None, speciality=Speciality(speciality) if speciality else None)
+    
+    total       = len(filtered)
+    total_pages = max(1, -(-total // per_page))
+    page        = max(1, min(page, total_pages))
+    start       = (page - 1) * per_page
+    items       = filtered[start:start + per_page]
+
     return render_template(
         "teachers/list.html",
-        teachers=teachers,
-        genres=Genre,
-        specialities=Speciality
+        teachers    = items,
+        total       = total,
+        page        = page,
+        per_page    = per_page,
+        total_pages = total_pages,
+        q           = q,
+        gender      = gender,
+        speciality  = speciality,
     )
 
 
-# GET & POST /teachers/create
 @teachers_bp.route("/create", methods=["GET", "POST"])
 def create():
-    if request.method == "POST":
-        name      = request.form.get("name", "").strip()
-        email     = request.form.get("email", "").strip()
-        specialty = request.form.get("specialty", "").strip()
-        genre     = request.form.get("genre", "").strip()
-        birthday  = request.form.get("birthday", "").strip()
-        adresse   = request.form.get("adresse", "").strip()
-        telephone = request.form.get("telephone", "").strip()
-
-        if not all([name, email, specialty, genre, birthday, adresse, telephone]):
-            flash("Tous les champs sont obligatoires.", "danger")
-            return render_template(
-                "teachers/create.html",
-                genres=Genre, specialities=Speciality
-            )
-        try:
-            teacher = teacher_service.addTeacher(
-                name=name,
-                email=email,
-                specialty=Speciality(specialty),
-                genre=Genre(genre),
-                birthday=date.fromisoformat(birthday),
-                adresse=adresse,
-                telephone=telephone
-            )
-            flash(f"Enseignant '{teacher.name}' ajouté avec succès.", "success")
-            return redirect(url_for("teachers.detail", id=teacher.id))
-        except ValueError as e:
-            flash(str(e), "danger")
-            return render_template(
-                "teachers/create.html",
-                genres=Genre, specialities=Speciality
-            )
-
+    from app.teachers.form import TeacherForm
+    from flask import current_app, flash, redirect
+    form = TeacherForm()
+    if form.validate_on_submit():
+        teacher_service.addTeacher(
+            name=form.name.data or "",
+            email=form.email.data or "",
+            speciality=Speciality(form.speciality.data),
+            gender=Gender(form.gender.data),
+            dob=form.dob.data,
+            address=form.address.data or "",
+            phone=form.phone.data or "",
+        )
+        flash("Enseignant ajouté avec succès.", "success")
+        return redirect(url_for("teachers.list"))
     return render_template(
         "teachers/create.html",
-        genres=Genre, specialities=Speciality
+        form         = form,
+        admin = {"name": "Jean Dupont", "photo_url": ""},
+        PHONE_PREFIX = current_app.config["PHONE_PREFIX"],
     )
 
 
-# GET /teachers/<id>
-@teachers_bp.route("/<int:id>")
-def detail(id: int):
-    teacher = teacher_service.getById(id)
-    if teacher is None:
-        flash("Enseignant introuvable.", "warning")
-        return redirect(url_for("teachers.list"))
-    return render_template("teachers/detail.html", teacher=teacher)
+@teachers_bp.route("/<string:mat>")
+def detail(mat):
+    teacher = teacher_service.getByMatricule(mat)
+    return render_template("teachers/detail.html", matricule=mat)
 
 
-# POST /teachers/delete/<id>
-@teachers_bp.route("/delete/<int:id>", methods=["POST"])
-def delete(id: int):
-    teacher = teacher_service.deleteTeacher(id)
-    if teacher:
-        flash(f"Enseignant '{teacher.name}' supprimé avec succès.", "success")
+@teachers_bp.route("/<int:id>/edit", methods=["GET", "POST"])
+def edit(id):
+    return render_template("teachers/edit.html")
+
+
+@teachers_bp.route("/<int:id>/delete", methods=["POST"])
+def delete(id):
+    from flask import flash
+    if teacher_service.deleteTeacher(id):
+        flash("Enseignant supprimé avec succès.", "success")
     else:
-        flash("Enseignant introuvable.", "warning")
+        flash("Enseignant introuvable.", "danger")
     return redirect(url_for("teachers.list"))

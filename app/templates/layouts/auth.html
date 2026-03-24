@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block body_class %}bg-warm-ivory h-screen flex overflow-hidden font-sans{% endblock %}
+
+{% block body %}
+
+{# Toasts flottants — haut droite, hors formulaire #}
+{% include "partials/_flash_toasts.html" %}
+
+{# ── Panneau gauche : illustration ── #}
+<div class="hidden lg:flex w-[40%] bg-deep-ink relative items-center justify-center overflow-hidden">
+
+    <img
+        src="{{ url_for('static', filename='img/auth-banner.png') }}"
+        alt="Edu.CRM illustration"
+        class="absolute inset-0 w-full h-full object-cover opacity-50"
+    />
+
+    <div class="absolute inset-0 bg-deep-ink/50"></div>
+
+    <div class="relative z-10 opacity-10 transform scale-150 rotate-12 pointer-events-none">
+        <img
+            src="{{ url_for('static', filename='img/logo.png') }}"
+            alt=""
+            class="w-80 h-auto object-contain brightness-0 invert"
+        />
+    </div>
+
+    <div class="absolute bottom-10 left-10 z-10">
+        <p class="text-white/30 font-serif text-lg tracking-widest">{{ APP_NAME }}</p>
+    </div>
+</div>
+
+{# ── Panneau droit : contenu auth ── #}
+<div class="w-full lg:w-[60%] bg-warm-ivory relative flex flex-col items-center justify-center p-6 lg:p-12">
+
+    <div
+        class="absolute inset-0 opacity-50 pointer-events-none z-0"
+        style="
+            background-image: linear-gradient(#E8E0D5 1px, transparent 1px),
+                              linear-gradient(90deg, #E8E0D5 1px, transparent 1px);
+            background-size: 40px 40px;
+        "
+    ></div>
+
+    <div class="relative z-10 w-full max-w-md">
+        {% block auth_content %}{% endblock %}
+    </div>
+</div>
+
+{% endblock %}

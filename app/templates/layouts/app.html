@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block body_class %}bg-background-light font-body min-h-screen flex flex-col text-[#1C1C2E]{% endblock %}
+
+{% block body %}
+
+    {# Toasts flottants #}
+    {% include "partials/_flash_toasts.html" %}
+
+    {# Navbar #}
+    {% include "partials/_navbar.html" %}
+
+    {# Contenu — chaque page gère son propre padding/max-width #}
+    <main class="flex-1 grid-pattern relative flex flex-col bg-white">
+        {% block content %}{% endblock %}
+    </main>
+
+    {# Footer #}
+    {% include "partials/_footer.html" %}
+
+{% endblock %}

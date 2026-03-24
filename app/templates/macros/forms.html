@@ -1,0 +1,199 @@
+{#
+    Macros pour les champs de formulaire.
+    Compatibles WTForms : chaque macro accepte un objet field WTForms.
+#}
+
+
+{# ── Champ texte / email / number avec icône optionnelle ── #}
+{% macro input_field(field, icon="", placeholder="") %}
+<div class="space-y-1.5">
+
+    <label
+        class="block text-sm font-medium text-slate-text font-sans"
+        for="{{ field.id }}"
+    >
+        {{ field.label.text }}
+    </label>
+
+    <div class="relative rounded-md">
+        {% if icon %}
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <span class="material-symbols-outlined text-slate-400 text-[18px]">{{ icon }}</span>
+        </div>
+        {% endif %}
+
+        {{ field(
+            class = "block w-full "
+                  + ("pl-10 " if icon else "pl-3 ")
+                  + "pr-3 py-3 border border-subtle-sand rounded-md "
+                  + "text-deep-ink placeholder-slate-400 bg-white text-sm "
+                  + "focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary "
+                  + "transition-colors",
+            placeholder = placeholder
+        ) }}
+    </div>
+
+    {% if field.errors %}
+    <ul class="mt-1 space-y-0.5">
+        {% for error in field.errors %}
+        <li class="text-xs text-red-500 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">error_outline</span>
+            {{ error }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+</div>
+{% endmacro %}
+
+
+{# ── Champ mot de passe avec toggle show/hide ── #}
+{% macro password_field(field, icon="lock", placeholder="••••••••") %}
+<div class="space-y-1.5">
+
+    <label
+        class="block text-sm font-medium text-slate-text font-sans"
+        for="{{ field.id }}"
+    >
+        {{ field.label.text }}
+    </label>
+
+    <div class="relative rounded-md" x-data="{ show: false }">
+
+        {# Icône gauche #}
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <span class="material-symbols-outlined text-slate-400 text-[18px]">{{ icon }}</span>
+        </div>
+
+        {{ field(
+            id          = field.id,
+            class       = "block w-full pl-10 pr-10 py-3 border border-subtle-sand rounded-md "
+                        + "text-deep-ink placeholder-slate-400 bg-white text-sm "
+                        + "focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary "
+                        + "transition-colors",
+            placeholder = placeholder
+        ) }}
+
+        {# Toggle show/hide — JS vanilla #}
+        <button
+            type="button"
+            onclick="togglePassword('{{ field.id }}', this)"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-text hover:text-primary transition-colors"
+            aria-label="Afficher / masquer le mot de passe"
+        >
+            <span class="material-symbols-outlined text-[18px]" id="eye-icon-{{ field.id }}">visibility</span>
+        </button>
+
+    </div>
+
+    {% if field.errors %}
+    <ul class="mt-1 space-y-0.5">
+        {% for error in field.errors %}
+        <li class="text-xs text-red-500 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">error_outline</span>
+            {{ error }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+</div>
+
+{# Script toggle — injecté une seule fois grâce au guard #}
+{% if not _password_toggle_injected %}
+{% set _ = namespace(_password_toggle_injected=true) %}
+<script>
+function togglePassword(fieldId, btn) {
+    const input   = document.getElementById(fieldId);
+    const icon    = document.getElementById('eye-icon-' + fieldId);
+    const isHidden = input.type === 'password';
+    input.type    = isHidden ? 'text' : 'password';
+    icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+}
+</script>
+{% endif %}
+{% endmacro %}
+
+
+{# ── Select / liste déroulante ── #}
+{% macro select_field(field, icon="") %}
+<div class="space-y-1.5">
+
+    <label
+        class="block text-sm font-medium text-slate-text font-sans"
+        for="{{ field.id }}"
+    >
+        {{ field.label.text }}
+    </label>
+
+    <div class="relative rounded-md">
+        {% if icon %}
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <span class="material-symbols-outlined text-slate-400 text-[18px]">{{ icon }}</span>
+        </div>
+        {% endif %}
+
+        {{ field(
+            class = "block w-full "
+                  + ("pl-10 " if icon else "pl-3 ")
+                  + "pr-8 py-3 border border-subtle-sand rounded-md "
+                  + "text-deep-ink bg-white text-sm appearance-none "
+                  + "focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary "
+                  + "transition-colors"
+        ) }}
+
+        {# Chevron #}
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <span class="material-symbols-outlined text-slate-400 text-[18px]">expand_more</span>
+        </div>
+    </div>
+
+    {% if field.errors %}
+    <ul class="mt-1 space-y-0.5">
+        {% for error in field.errors %}
+        <li class="text-xs text-red-500 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">error_outline</span>
+            {{ error }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+</div>
+{% endmacro %}
+
+
+{# ── Textarea ── #}
+{% macro textarea_field(field, placeholder="", rows=4) %}
+<div class="space-y-1.5">
+
+    <label
+        class="block text-sm font-medium text-slate-text font-sans"
+        for="{{ field.id }}"
+    >
+        {{ field.label.text }}
+    </label>
+
+    {{ field(
+        class       = "block w-full px-3 py-3 border border-subtle-sand rounded-md "
+                    + "text-deep-ink placeholder-slate-400 bg-white text-sm resize-none "
+                    + "focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary "
+                    + "transition-colors",
+        placeholder = placeholder,
+        rows        = rows
+    ) }}
+
+    {% if field.errors %}
+    <ul class="mt-1 space-y-0.5">
+        {% for error in field.errors %}
+        <li class="text-xs text-red-500 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">error_outline</span>
+            {{ error }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+</div>
+{% endmacro %}

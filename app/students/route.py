@@ -1,152 +1,112 @@
-from math import ceil
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from app.services.student__service import student_service
-from app.services.course__service import course_service
-from app.services.activity__service import activity_service
-from app.services.auth_service import auth_service
-from app.models.genre import Genre
-from app.models.action import Action
-from app.auth.decorators import login_required
+from flask import Blueprint, render_template, request, url_for
+from app.models.gender import Gender
 
-students_bp = Blueprint('students', __name__, url_prefix='/students')
+students_bp = Blueprint("students", __name__, url_prefix="/students")
 
 
-@students_bp.route('/')
-@login_required
+# ── Données statiques de test ─────────────────────────────────────────────────
+
+STUDENTS = [
+    {"id": 1, "matricule": "STU-001", "name": "Lucas Bernard",   "email": "lucas.bernard@edu.crm",  "phone": "771234567", "gender": Gender.M, "photo_url": ""},
+    {"id": 2, "matricule": "STU-002", "name": "Emma Morel",      "email": "emma.morel@edu.crm",      "phone": "789876543", "gender": Gender.F, "photo_url": ""},
+    {"id": 3, "matricule": "STU-003", "name": "Julien Petit",    "email": "julien.petit@edu.crm",    "phone": "764512890", "gender": Gender.M, "photo_url": ""},
+    {"id": 4, "matricule": "STU-004", "name": "Sophie Lefebvre", "email": "sophie.l@edu.crm",        "phone": "703322110", "gender": Gender.F, "photo_url": ""},
+    {"id": 5, "matricule": "STU-005", "name": "Thomas Dubois",   "email": "t.dubois@edu.crm",        "phone": "778899001", "gender": Gender.M, "photo_url": ""},
+    {"id": 6, "matricule": "STU-006", "name": "Awa Diallo",      "email": "awa.diallo@edu.crm",      "phone": "701234567", "gender": Gender.F, "photo_url": ""},
+    {"id": 7, "matricule": "STU-007", "name": "Omar Sy",         "email": "omar.sy@edu.crm",         "phone": "782345678", "gender": Gender.M, "photo_url": ""},
+    {"id": 8, "matricule": "STU-008", "name": "Fatou Ndiaye",    "email": "fatou.ndiaye@edu.crm",    "phone": "701234568", "gender": Gender.F, "photo_url": ""},
+    {"id": 9, "matricule": "STU-009", "name": "Pierre Martin",   "email": "p.martin@edu.crm",        "phone": "771234568", "gender": Gender.M, "photo_url": ""},
+    {"id":10, "matricule": "STU-010", "name": "Claire Dubois",   "email": "c.dubois@edu.crm",        "phone": "789876544", "gender": Gender.F, "photo_url": ""},
+    {"id":11, "matricule": "STU-011", "name": "Moussa Koné",     "email": "m.kone@edu.crm",          "phone": "764512891", "gender": Gender.M, "photo_url": ""},
+    {"id":12, "matricule": "STU-012", "name": "Aïda Mbaye",      "email": "a.mbaye@edu.crm",         "phone": "703322111", "gender": Gender.F, "photo_url": ""},
+]
+
+# Nombre de cours par étudiant (simulé)
+STUDENT_COURSES = {1: 3, 2: 5, 3: 2, 4: 4, 5: 1, 6: 3, 7: 2, 8: 4, 9: 1, 10: 3, 11: 5, 12: 2}
+
+
+# ── Routes ────────────────────────────────────────────────────────────────────
+
+@students_bp.route("/")
 def list():
-    query = request.args.get('q')
-    genre_param = request.args.get('genre')
-    page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 5))
+    from flask import current_app
 
-    genre = Genre(genre_param) if genre_param else None
-    students = student_service.listStudents(query=query, genre=genre)
+    # Paramètres GET
+    q        = request.args.get("q", "").strip().lower()
+    gender   = request.args.get("gender", "")
+    per_page = int(request.args.get("per_page", current_app.config["PAGINATION_DEFAULT"]))
+    page     = int(request.args.get("page", 1))
 
-    total = len(students)
-    pages = ceil(total / per_page) if total > 0 else 1
-    start = (page - 1) * per_page
-    items = students[start:start + per_page]
+    # --- Filtrage statique (à remplacer par student_service.filter()) ---
+    # TODO: Appeler le service pour récupérer la liste des étudiants filtrées 
+    filtered = STUDENTS
 
-    return render_template('students/list.html',
-        items=items,
-        total=total,
-        page=page,
-        pages=pages,
-        per_page=per_page,
-        query=query,
-        genre=genre_param
+    if q:
+        filtered = [
+            s for s in filtered
+            if q in s["name"].lower()
+            or q in s["email"].lower()
+            or q in s["matricule"].lower()
+        ]
+
+    if gender:
+        filtered = [s for s in filtered if s["gender"].value == gender]
+    # --- fin filtrage statique ---
+
+    # Pagination
+    total       = len(filtered)
+    total_pages = max(1, -(-total // per_page))  # ceil division
+    page        = max(1, min(page, total_pages))
+    start       = (page - 1) * per_page
+    items       = filtered[start:start + per_page]
+
+    # Ajout du nombre de cours à chaque item
+    for s in items:
+        s["course_count"] = STUDENT_COURSES.get(s["id"], 0)
+
+    return render_template(
+        "students/list.html",
+        students    = items,
+        total       = total,
+        page        = page,
+        per_page    = per_page,
+        total_pages = total_pages,
+        q           = q,
+        gender      = gender,
+        admin= {"name": "Jean Dupont", "photo_url": ""},
     )
 
 
-@students_bp.route('/create', methods=['GET', 'POST'])
-@login_required
+@students_bp.route("/create", methods=["GET", "POST"])
 def create():
-    if request.method == 'POST':
-        from datetime import datetime
-        name = request.form.get('name')
-        email = request.form.get('email')
-        genre = Genre(request.form.get('genre'))
-        birthday = datetime.strptime(request.form.get('birthday'), '%Y-%m-%d').date()
-        adresse = request.form.get('adresse')
-        telephone = request.form.get('telephone')
-
-        student = student_service.addStudent(
-            name=name,
-            email=email,
-            genre=genre,
-            birthday=birthday,
-            adresse=adresse,
-            telephone=telephone
-        )
-
-        user = auth_service.getUserById(session['user_id'])
-        activity_service.log(
-            action=Action.AJOUTER,
-            model_type="Student",
-            model_id=student.id,
-            details=student.name,
-            user=user
-        )
-
-        flash(f"Étudiant {student.name} ajouté avec succès", "success")
-        return redirect(url_for('students.list'))
-
-    return render_template('students/create.html')
-
-
-@students_bp.route('/<int:id>')
-@login_required
-def detail(id: int):
-    student = student_service.getById(id)
-    if student is None:
-        flash("Étudiant introuvable", "danger")
-        return redirect(url_for('students.list'))
-
-    courses = course_service.getCoursesByStudent(id)
-
-    return render_template('students/detail.html',
-        student=student,
-        courses=courses
+    from app.students.form import StudentForm
+    from flask import current_app, flash, redirect
+    form = StudentForm()
+    if form.validate_on_submit():
+        # TODO: student_service.add_student()  avec Alchemy
+        flash("Étudiant inscrit avec succès.", "success")
+        return redirect(url_for("students.list"))
+    return render_template(
+        "students/create.html",
+        form         = form,
+        admin = {"name": "Jean Dupont", "photo_url": ""},
+        PHONE_PREFIX = current_app.config["PHONE_PREFIX"],
     )
 
 
-@students_bp.route('/delete/<int:id>', methods=['POST'])
-@login_required
-def delete(id: int):
-    student = student_service.deleteStudent(id)
-    if student is None:
-        flash("Étudiant introuvable", "danger")
-        return redirect(url_for('students.list'))
-
-    course_service.removeStudentFromAllCourses(id)
-
-    user = auth_service.getUserById(session['user_id'])
-    activity_service.log(
-        action=Action.SUPPRIMER,
-        model_type="Student",
-        model_id=id,
-        details=student.name,
-        user=user
-    )
-
-    flash(f"Étudiant {student.name} supprimé avec succès", "success")
-    return redirect(url_for('students.list'))
+@students_bp.route("/<string:mat>")
+def detail(mat):
+    # TODO: student_service.get_student_by_mat(mat) avec Alchemy
+    return render_template("students/detail.html")
 
 
-@students_bp.route('/<int:id>/assign', methods=['GET', 'POST'])
-@login_required
-def assign(id: int):
-    student = student_service.getById(id)
-    if student is None:
-        flash("Étudiant introuvable", "danger")
-        return redirect(url_for('students.list'))
+@students_bp.route("/<int:id>/edit", methods=["GET", "POST"])
+def edit(id):
+    # TODO: student_service.update_student(id)  avec Alchemy
+    return render_template("students/edit.html")
 
-    if request.method == 'POST':
-        course_id = int(request.form.get('course_id'))
-        course = course_service.assignStudent(course_id=course_id, student=student)
-        if course is None:
-            flash("Cours introuvable", "danger")
-            return redirect(url_for('students.assign', id=id))
 
-        flash(f"Étudiant affecté au cours {course.title} avec succès", "success")
-        return redirect(url_for('students.detail', id=id))
-
-    query = request.args.get('q')
-    page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 5))
-
-    courses = course_service.listCourses(query=query)
-    total = len(courses)
-    pages = ceil(total / per_page) if total > 0 else 1
-    start = (page - 1) * per_page
-    items = courses[start:start + per_page]
-
-    return render_template('students/assign.html',
-        student=student,
-        items=items,
-        total=total,
-        page=page,
-        pages=pages,
-        per_page=per_page,
-        query=query
-    )
+@students_bp.route("/<int:id>/delete", methods=["POST"])
+def delete(id):
+    # TODO: student_service.delete_student(id)  avec Alchemy
+    pass

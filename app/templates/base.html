@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>{% block title %}{{ APP_NAME }}{% endblock %}</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo-icon.png') }}"/>
+
+    <script src="https://cdn.tailwindcss.com?plugins=container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lexend:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        {# ── Palette dashboard ── #}
+                        "primary":          "#1C1C2E",
+                        "secondary":        "#C8923A",
+                        "accent":           "#4A8C7F",
+                        "celadon":          "#4A8C7F",
+                        "ocre":             "#C8923A",
+                        "ink":              "#1C1C2E",
+                        "parchment":        "#F5F1E9",
+                        "off-white-card":   "#FDFAF7",
+                        "sand":             "#E8E0D5",
+                        "brique":           "#B34B4B",
+                        "logout-red":       "#C0392B",
+                        "notebook-tan":     "#DBCFB8",
+                        {# ── Palette login (compatibilité) ── #}
+                        "deep-ink":         "#1C1C2E",
+                        "warm-ivory":       "#F7F3EE",
+                        "clean-white":      "#FDFAF7",
+                        "subtle-sand":      "#E8E0D5",
+                        "gold-ocre":        "#C8923A",
+                        "slate-text":       "#6B7280",
+                        "primary-hover":    "#3D756A",
+                    },
+                    fontFamily: {
+                        display: ["Lexend", "sans-serif"],
+                        serif:   ['"Cormorant Garamond"', "serif"],
+                        body:    ["Inter", "sans-serif"],
+                        sans:    ["Inter", "sans-serif"],
+                        mono:    ['"Space Mono"', "monospace"],
+                    },
+                    boxShadow: {
+                        "glass":            "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
+                        "soft-gallery":     "0 4px 20px -2px rgba(232, 224, 213, 0.4)",
+                        "hover-elevation":  "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
+                        "soft":             "0 20px 40px -5px rgba(28, 28, 46, 0.1)",
+                    },
+                    keyframes: {
+                        fadeSlideIn: {
+                            "0%":   { opacity: "0", transform: "translateY(-8px)" },
+                            "100%": { opacity: "1", transform: "translateY(0)" },
+                        },
+                    },
+                    animation: {
+                        "fade-slide-in": "fadeSlideIn 0.3s ease-out forwards",
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style type="text/tailwindcss">
+        .grid-pattern {
+            background-image: radial-gradient(#F1F1F1 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+        }
+        .footer-notebook-texture {
+            background-color: #DBCFB8;
+            background-image:
+                linear-gradient(rgba(28, 28, 46, 0.12) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(28, 28, 46, 0.12) 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+        }
+        .glass-card {
+            @apply bg-white/70 backdrop-blur-md border border-white shadow-glass relative overflow-hidden transition-all duration-500 hover:shadow-xl;
+        }
+        .stat-gradient-text {
+            background: linear-gradient(135deg, #4A8C7F 0%, #2D5A52 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .decorative-icon {
+            @apply absolute -right-4 -bottom-4 text-9xl opacity-[0.03] select-none pointer-events-none;
+        }
+        .secondary-stat-card {
+            @apply bg-off-white-card border border-sand rounded-xl p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-center;
+        }
+        .card-gallery {
+            @apply bg-white border border-sand shadow-soft-gallery;
+        }
+        .badge-celadon {
+            @apply bg-[#4A8C7F]/10 text-[#4A8C7F] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider;
+        }
+        .badge-brique {
+            @apply bg-[#B34B4B]/10 text-[#B34B4B] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider;
+        }
+        .badge-amber {
+            @apply bg-[#C8923A]/10 text-[#C8923A] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider;
+        }
+        .quick-action-btn {
+            @apply flex items-center gap-4 p-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-hover-elevation hover:-translate-y-0.5 text-white;
+        }
+        .ms { font-family: 'Material Symbols Outlined'; }
+        .writing-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+        }
+        .input-form {
+            @apply bg-white border-b-2 border-sand border-t-0 border-l-0 border-r-0
+                   focus:ring-0 focus:border-celadon rounded-none text-sm
+                   transition-all duration-200 w-full px-0 placeholder-slate-400;
+        }
+        .input-label {
+            @apply block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1;
+        }
+        .section-title {
+            @apply font-serif text-xl text-ink mb-6 flex items-center gap-3 border-b border-sand pb-2;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}bg-warm-ivory font-body{% endblock %}">
+    {% block body %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% extends "layouts/auth.html" %}
+
+{% from "macros/forms.html"   import input_field, password_field %}
+{% from "macros/buttons.html" import btn_primary %}
+
+{% block title %}Connexion — {{ APP_NAME }}{% endblock %}
+
+{% block auth_content %}
+
+<div class="bg-clean-white rounded-lg shadow-soft relative overflow-hidden
+            transform lg:-translate-x-12 border border-white/50">
+
+    <div class="h-1.5 w-full bg-primary absolute top-0 left-0"></div>
+
+    <div class="p-8">
+
+        {# Logo #}
+        <div class="flex justify-center">
+            <img
+                src="{{ url_for('static', filename=APP_LOGO) }}"
+                alt="{{ APP_NAME }}"
+                class="h-[120px] w-auto object-contain mix-blend-multiply"
+            />
+        </div>
+
+        {# Titre #}
+        <div class="text-center mb-8">
+            <h1 class="font-serif text-3xl md:text-4xl font-bold text-deep-ink mb-2 tracking-tight">
+                Connexion
+            </h1>
+            <p class="font-sans text-sm text-slate-text">
+                Accédez à votre espace {{ APP_NAME }}
+            </p>
+        </div>
+
+        {# Formulaire #}
+        <form action="{{ url_for('auth.login') }}" method="POST" class="space-y-5" novalidate>
+
+            {# Erreurs Flash #}
+            {% include "partials/_flash_errors.html" %}
+
+            {{ form.hidden_tag() }}
+
+            {{ input_field(form.email, icon="mail", placeholder="admin@educrm.com") }}
+
+            {{ password_field(form.password, placeholder="••••••••") }}
+
+            <div class="pt-2">
+                {{ btn_primary("SE CONNECTER") }}
+            </div>
+
+        </form>
+
+        {# Copyright #}
+        <div class="mt-8 pt-6 border-t border-subtle-sand/50">
+            {% include "partials/_copyright.html" %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,58 +1,25 @@
+import uuid
 from datetime import datetime
-from app.models.teacher import Teacher
-from app.models.student import Student
+from app.extensions import db
+from app.models.student import enrollment
 
+def _generate_code() -> str:
+    return f"CRS-{uuid.uuid4().hex[:8].upper()}"
 
-class Course:
-    counter: int = 0
+class Course(db.Model):
+    __tablename__ = "courses"
 
-    def __init__(self, title: str, teacher: Teacher):
-        Course.counter += 1
-        self.__id = Course.counter
-        self.__title = title
-        self.__teacher_id = teacher.id
-        self.__students_ids = []
-        self.__teacher = teacher
-        self.__students = []
-        self.__createdAt = datetime.now()
+    id         = db.Column(db.Integer,    primary_key=True)
+    code       = db.Column(db.String(20), unique=True, nullable=False, default=_generate_code)
+    title      = db.Column(db.String(200), nullable=False)
+    teacher_id = db.Column(db.Integer,    db.ForeignKey("teachers.id"), nullable=False)
+    created_at = db.Column(db.DateTime,   default=datetime.utcnow, nullable=False)
 
-    @property
-    def id(self) -> int:
-        return self.__id
+    # Relation Many-to-One avec Teacher
+    teacher  = db.relationship("Teacher", back_populates="courses")
 
-    @property
-    def title(self) -> str:
-        return self.__title
+    # Relation M:N avec Student via table d'association
+    students = db.relationship("Student", secondary=enrollment, back_populates="courses")
 
-    @title.setter
-    def title(self, value: str) -> None:
-        self.__title = value
-
-    @property
-    def teacher_id(self) -> int:
-        return self.__teacher_id
-
-    @property
-    def students_ids(self) -> list[int]:
-        return self.__students_ids
-
-    @property
-    def teacher(self) -> Teacher:
-        return self.__teacher
-
-    @teacher.setter
-    def teacher(self, value: Teacher) -> None:
-        self.__teacher = value
-        self.__teacher_id = value.id
-
-    @property
-    def students(self) -> list[Student]:
-        return self.__students
-
-    @property
-    def createdAt(self) -> datetime:
-        return self.__createdAt
-
-    def addStudent(self, student: Student) -> None:
-        self.__students_ids.append(student.id)
-        self.__students.append(student)
+    def __repr__(self) -> str:
+        return f"<Course {self.code} — {self.title}>"

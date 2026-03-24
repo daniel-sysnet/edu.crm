@@ -1,0 +1,29 @@
+{#
+    Macros UI génériques réutilisables.
+
+    breadcrumb(items) → fil d'ariane
+        items : liste de dicts [{label, url}]
+        Le dernier item est toujours le courant (pas de lien).
+
+    Usage :
+        {% from "macros/ui.html" import breadcrumb %}
+        {{ breadcrumb([
+            {"label": "Étudiants", "url": url_for("students.list")},
+            {"label": "Nouvelle Inscription"}
+        ]) }}
+#}
+
+{% macro breadcrumb(items) %}
+<nav aria-label="Breadcrumb" class="text-sm font-medium text-slate-500 font-body mb-6">
+    {% for item in items %}
+        {% if not loop.last %}
+            <a href="{{ item.url }}" class="hover:text-slate-800 transition-colors text-celadon">
+                {{ item.label }}
+            </a>
+            <span class="mx-2 text-slate-400">›</span>
+        {% else %}
+            <span class="text-slate-800">{{ item.label }}</span>
+        {% endif %}
+    {% endfor %}
+</nav>
+{% endmacro %}

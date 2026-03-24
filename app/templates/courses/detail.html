@@ -1,0 +1,192 @@
+{% extends "layouts/app.html" %}
+
+{% from "macros/profile.html" import profile_header, meta_section, meta_row, gender_badge %}
+{% from "macros/badges.html"  import id_badge %}
+{% from "macros/avatar.html"  import avatar %}
+
+{% block content %}
+
+{# ══════════════════════════════════════════════
+   BANDEAU SOMBRE
+   course.title  (pas .name)
+   course.code   ✓
+══════════════════════════════════════════════ #}
+{{ profile_header(
+    entity_type  = "Cours",
+    entity_icon  = "menu_book",
+    name         = course.title,
+    code         = course.code,
+    breadcrumbs  = [{"label": "Cours", "url": url_for("courses.list")}],
+    current_page = "Détails du Cours",
+    deco_icon    = "menu_book"
+) }}
+
+
+{# ══════════════════════════════════════════════
+   CORPS — grille 3 colonnes
+══════════════════════════════════════════════ #}
+<div class="px-8 w-full max-w-[1400px] mx-auto -mt-16 relative z-20 flex-grow mb-16">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+
+        <div class="hidden lg:block absolute left-[25%]  top-[88px] bottom-0 w-px bg-sand -ml-4"></div>
+        <div class="hidden lg:block absolute right-[25%] top-[88px] bottom-0 w-px bg-sand -mr-4"></div>
+
+
+        {# ─────────────────────────────────────
+           COLONNE GAUCHE — Responsable Pédagogique
+           teacher.name           (pas .full_name)
+           teacher.matricule      (pas .code)
+           teacher.speciality.value (pas .specialty)
+           teacher.gender → Enum → gender_badge() via .value
+        ───────────────────────────────────── #}
+        {% call(caller) meta_section(
+            name          = course.teacher.name,
+            photo_url     = "",
+            section_title = "Responsable Pédagogique"
+        ) %}
+
+            <div class="flex flex-col items-center text-center relative">
+                <a class="absolute top-0 right-0 size-8 rounded-full bg-[#F3F4F6] text-slate-500
+                           hover:bg-[#4A8C7F] hover:text-white transition-colors duration-200
+                           flex items-center justify-center"
+                   href="{{ url_for('teachers.detail', mat=course.teacher.matricule) }}"
+                   title="Voir le profil complet">
+                    <span class="material-symbols-outlined text-xl">visibility</span>
+                </a>
+                <h4 class="font-serif text-xl font-bold text-slate-800 mt-2">
+                    {{ course.teacher.name }}
+                </h4>
+                <div class="mt-2">
+                    {{ id_badge(course.teacher.matricule) }}
+                </div>
+            </div>
+
+            <hr class="border-sand"/>
+
+            {% call meta_row("person", "Genre") %}
+                {{ gender_badge(course.teacher.gender) }}
+            {% endcall %}
+
+            {% call meta_row("verified", "Spécialité") %}
+                <div class="inline-flex items-center justify-center bg-slate-800 text-white
+                            font-mono text-xs font-bold px-2 py-1 rounded">
+                    {{ course.teacher.speciality.value }}
+                </div>
+            {% endcall %}
+
+        {% endcall %}
+
+
+        {# ─────────────────────────────────────
+           COLONNE CENTRALE — Liste des étudiants
+           student.name      (pas .full_name)
+           student.matricule (pas .code)
+           student.gender → Enum → gender_badge() via .value
+        ───────────────────────────────────── #}
+        <div class="lg:col-span-6 mt-16 lg:mt-24 space-y-6 px-4">
+
+            <div class="flex items-end justify-between border-b border-sand pb-3">
+                <h3 class="font-serif text-3xl text-[#1C1C2E]">Liste des Étudiants Inscrits</h3>
+                <div class="flex flex-col items-end text-right">
+                    <span class="font-mono text-3xl font-bold text-[#4A8C7F] leading-none">
+                        {{ total_students }}
+                    </span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                        ÉTUDIANTS TOTAUX
+                    </span>
+                </div>
+            </div>
+
+            <div class="table-card bg-white/80 backdrop-blur-sm">
+                <table class="w-full text-left border-collapse table-auto">
+                    <thead class="bg-white/50 backdrop-blur-md border-b border-sand">
+                        <tr>
+                            <th class="w-1   px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Matricule</th>
+                            <th class="w-full px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Étudiant</th>
+                            <th class="w-1   px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Genre</th>
+                            <th class="w-1   px-6 py-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-sand">
+                        {% for student in students %}
+                        <tr class="hover:bg-slate-50 transition-colors group">
+
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{ id_badge(student.matricule) }}
+                            </td>
+                            <td class="px-6 py-4 font-body font-medium text-slate-800 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    {{ avatar(student.name, "", size="w-8 h-8", text_size="text-xs") }}
+                                    <span>{{ student.name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{ gender_badge(student.gender) }}
+                            </td>
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                <a href="{{ url_for('students.detail', id=student.id) }}"
+                                   class="text-slate-400 hover:text-ocre transition-colors float-right">
+                                    <span class="material-symbols-outlined">chevron_right</span>
+                                </a>
+                            </td>
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-16 text-center">
+                                <div class="flex flex-col items-center gap-3">
+                                    <span class="material-symbols-outlined text-slate-300"
+                                          style="font-size:48px">group_off</span>
+                                    <p class="text-sm text-slate-400 font-body">Aucun étudiant inscrit.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% if has_more %}
+                <a href="{{ url_for('courses.detail', id=course.id, more=next_more) }}"
+                   class="bg-[#F3F4F6] py-2 flex flex-col items-center justify-center
+                          cursor-pointer transition-colors hover:bg-gray-200 border-t border-sand">
+                    <span class="font-body font-medium text-[#6B7280] text-sm flex items-center gap-1">
+                        Afficher plus
+                        <span class="material-symbols-outlined text-[16px]">expand_more</span>
+                    </span>
+                </a>
+                {% endif %}
+            </div>
+
+        </div>
+
+
+        {# ─────────────────────────────────────
+           COLONNE DROITE — Informations
+           course.created_at | format_date  (filtre ajouté dans __init__.py)
+        ───────────────────────────────────── #}
+        <div class="lg:col-span-3 mt-16 lg:mt-24 space-y-6 pl-4">
+
+            <h3 class="font-serif text-2xl text-[#1C1C2E] border-b border-sand pb-3">Informations</h3>
+
+            <div class="card p-6 bg-white/80 backdrop-blur-sm flex flex-col gap-4">
+                {% call meta_row("calendar_today", "Date de Création") %}
+                    <p class="font-mono text-[13px] text-slate-800">
+                        {{ course.created_at | format_date }}
+                    </p>
+                {% endcall %}
+            </div>
+
+            <a href="{{ url_for('courses.assign', code=course.code) }}"
+               class="w-full bg-[#64748B] text-white px-4 py-3.5 rounded-lg font-medium
+                      flex justify-center items-center gap-2
+                      hover:bg-slate-600 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                Inscrire un étudiant
+            </a>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
