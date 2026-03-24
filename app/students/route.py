@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from app.services.student_service import student_service
+from app.services.student__service import student_service
 from app.models.gender import Genre
 
 students_bp = Blueprint("students", __name__, url_prefix="/students")
