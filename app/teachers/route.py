@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, url_for, redirect
 from app.models.gender     import Gender
 from app.models.speciality import Speciality
+from app.services.teacher_service import TeacherService
 
 teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
+teacher_service = TeacherService()
 
 
 # ── Données statiques de test ─────────────────────────────────────────────────
@@ -34,32 +36,13 @@ def list():
     per_page   = int(request.args.get("per_page", current_app.config["PAGINATION_DEFAULT"]))
     page       = int(request.args.get("page", 1))
 
-    # --- Filtrage statique ---
-    # TODO: Appeler le service pour récupérer la liste des étudiants filtrées 
-    filtered = TEACHERS
-
-    if q:
-        filtered = [
-            t for t in filtered
-            if q in t["name"].lower()
-            or q in t["email"].lower()
-            or q in t["matricule"].lower()
-        ]
-    if gender:
-        filtered = [t for t in filtered if t["gender"].value == gender]
-
-    if speciality:
-        filtered = [t for t in filtered if t["speciality"].value == speciality]
-    # --- fin filtrage statique ---
-
+    filtered = teacher_service.listTeachers(query=q, gender=Gender(gender) if gender else None, speciality=Speciality(speciality) if speciality else None)
+    
     total       = len(filtered)
     total_pages = max(1, -(-total // per_page))
     page        = max(1, min(page, total_pages))
     start       = (page - 1) * per_page
     items       = filtered[start:start + per_page]
-
-    for t in items:
-        t["course_count"] = TEACHER_COURSES.get(t["id"], 0)
 
     return render_template(
         "teachers/list.html",
@@ -80,7 +63,15 @@ def create():
     from flask import current_app, flash, redirect
     form = TeacherForm()
     if form.validate_on_submit():
-        # TODO: teacher_service.add_teacher() avec Alchemy
+        teacher_service.addTeacher(
+            name=form.name.data or "",
+            email=form.email.data or "",
+            speciality=Speciality(form.speciality.data),
+            gender=Gender(form.gender.data),
+            dob=form.dob.data,
+            address=form.address.data or "",
+            phone=form.phone.data or "",
+        )
         flash("Enseignant ajouté avec succès.", "success")
         return redirect(url_for("teachers.list"))
     return render_template(
@@ -91,9 +82,10 @@ def create():
     )
 
 
-@teachers_bp.route("/<str:mat>")
+@teachers_bp.route("/<string:mat>")
 def detail(mat):
-    return render_template("teachers/detail.html")
+    teacher = teacher_service.getByMatricule(mat)
+    return render_template("teachers/detail.html", matricule=mat)
 
 
 @teachers_bp.route("/<int:id>/edit", methods=["GET", "POST"])
@@ -103,4 +95,9 @@ def edit(id):
 
 @teachers_bp.route("/<int:id>/delete", methods=["POST"])
 def delete(id):
-    pass
+    from flask import flash
+    if teacher_service.deleteTeacher(id):
+        flash("Enseignant supprimé avec succès.", "success")
+    else:
+        flash("Enseignant introuvable.", "danger")
+    return redirect(url_for("teachers.list"))

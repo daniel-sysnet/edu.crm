@@ -1,74 +1,68 @@
-from typing import Optional
+from typing import Optional, List
 from app.models.teacher import Teacher
 from app.models.gender import Gender
 from app.models.speciality import Speciality
 from datetime import date
+from app.extensions import db
 
 
 class TeacherService:
 
-    def __init__(self):
-        self.__teachers: list[Teacher] = []
+    def addTeacher(self, name: str, email: str, speciality, gender, dob: date | None,
+                address: str, phone: str) -> Teacher:
+        # Convertir en Enum si des chaînes sont fournies depuis le formulaire
+        if isinstance(speciality, str):
+            speciality = Speciality(speciality)
+        if isinstance(gender, str):
+            gender = Gender(gender)
 
-    def addTeacher(self, name: str, email: str, specialty: Speciality,
-                gender: Gender, birthday: date,
-                adresse: str, telephone: str) -> Teacher:
-        teacher = Teacher(
-            name=name,
-            email=email,
-            specialty=specialty,
-            gender=gender,
-            birthday=birthday,
-            adresse=adresse,
-            telephone=telephone
-        )
-        self.__teachers.append(teacher)
+        teacher = Teacher()
+        teacher.name = name
+        teacher.email = email
+        teacher.speciality = speciality
+        teacher.gender = gender
+        teacher.dob = dob
+        teacher.address = address
+        teacher.phone = phone
+        db.session.add(teacher)
+        db.session.commit()
         return teacher
-
-    def deleteTeacher(self, id: int) -> Optional[Teacher]:
-        for i, teacher in enumerate(self.__teachers):
-            if teacher.id == id:
-                return self.__teachers.pop(i)
-        return None
 
     def listTeachers(
         self,
         query: Optional[str] = None,
         gender: Optional[Gender] = None,
         speciality: Optional[Speciality] = None,
-        per_page: Optional[int] = None,
-        page: Optional[int] = None,
-    ) -> list[Teacher]:
-        result = self.__teachers
+    ) -> List[Teacher]:
+        q = Teacher.query
         if query:
-            result = [t for t in result if query.lower() in t.name.lower()]
+            q = q.filter(
+                (Teacher.name.ilike(f'%{query}%')) |
+                (Teacher.email.ilike(f'%{query}%')) |
+                (Teacher.matricule.ilike(f'%{query}%'))
+            )
         if gender:
-            result = [t for t in result if t.gender == gender]
+            q = q.filter(Teacher.gender == gender)
         if speciality:
-            result = [t for t in result if t.speciality == speciality]
-
-        if per_page is not None and page is not None and page > 0 and per_page > 0:
-            start = (page - 1) * per_page
-            end = start + per_page
-            result = result[start:end]
-
-        return result
+            q = q.filter(Teacher.speciality == speciality)
+        return q.all()
 
     def getById(self, id: int) -> Optional[Teacher]:
-        for teacher in self.__teachers:
-            if teacher.id == id:
-                return teacher
-        return None
+        return Teacher.query.get(id)
 
     def countTeachers(self) -> int:
-        return len(self.__teachers)
+        return Teacher.query.count()
 
     def countWithoutCourses(self, course_service) -> int:
-        teachers_with_courses = {
-            course.teacher_id
-            for course in course_service.listCourses()
-        }
-        return sum(
-            1 for t in self.__teachers
-            if t.id not in teachers_with_courses
-        )
+        return Teacher.query.filter(~Teacher.courses.any()).count()
+    
+    def getByMatricule(self, mat: str) -> Optional[Teacher]:
+        return Teacher.query.filter_by(matricule=mat).first()
+    
+    def deleteTeacher(self, id: int) -> Optional[Teacher]:
+        teacher = Teacher.query.get(id)
+        if teacher:
+            db.session.delete(teacher)
+            db.session.commit()
+            return teacher
+        return None

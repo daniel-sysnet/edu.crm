@@ -19,7 +19,7 @@ class Teacher(db.Model):
     created_at = db.Column(db.DateTime,          default=datetime.utcnow, nullable=False)
 
     # Relation One-to-Many avec Course
-    courses = db.relationship("Course", back_populates="teacher")
+    courses = db.relationship("Course", back_populates="teacher", cascade="all, delete-orphan")
 
     @staticmethod
     def generate_matricule(id: int) -> str:
