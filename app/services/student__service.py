@@ -1,12 +1,12 @@
 from typing import List, Optional
 from datetime import date
+from app.enum_ui import gender
 from app.models.student import Student
-from app.models.gender import Genre
 from app.extensions import db
 from sqlalchemy import desc
 
 class StudentService:
-    def addStudent(self, name: str, email: str, genre: Genre, birthday: date, 
+    def addStudent(self, name: str, email: str, genre: gender, birthday: date, 
                    adresse: str, telephone: str) -> Student:
         """Crée et ajoute un étudiant en base de données[cite: 181, 189]."""
         student = Student(
@@ -29,7 +29,7 @@ class StudentService:
             db.session.commit()
         return student
 
-    def listStudents(self, query: str = None, genre: Genre = None) -> List[Student]:
+    def listStudents(self, query: str = None, genre: gender = None) -> List[Student]:
         """Retourne la liste filtrée et triée par les plus récents[cite: 183, 184]."""
         stmt = Student.query
         
