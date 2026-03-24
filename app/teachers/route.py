@@ -7,25 +7,6 @@ teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
 teacher_service = TeacherService()
 
 
-# ── Données statiques de test ─────────────────────────────────────────────────
-
-TEACHERS = [
-    {"id": 1, "matricule": "ENS-001", "name": "Marc Tremblay",    "email": "marc.tremblay@edu.crm",   "phone": "771234567", "gender": Gender.M, "speciality": Speciality.DATA,    "photo_url": ""},
-    {"id": 2, "matricule": "ENS-002", "name": "Sylvie Laurent",   "email": "sylvie.laurent@edu.crm",  "phone": "769876543", "gender": Gender.F, "speciality": Speciality.WEB,     "photo_url": ""},
-    {"id": 3, "matricule": "ENS-003", "name": "Alain Martin",     "email": "alain.martin@edu.crm",    "phone": "704512890", "gender": Gender.M, "speciality": Speciality.NETWORK, "photo_url": ""},
-    {"id": 4, "matricule": "ENS-004", "name": "Isabelle Richard", "email": "isabelle.r@edu.crm",      "phone": "783322110", "gender": Gender.F, "speciality": Speciality.AI,      "photo_url": ""},
-    {"id": 5, "matricule": "ENS-005", "name": "Robert Dupont",    "email": "robert.d@edu.crm",        "phone": "778899001", "gender": Gender.M, "speciality": Speciality.WEB,     "photo_url": ""},
-    {"id": 6, "matricule": "ENS-006", "name": "Claire Petit",     "email": "claire.p@edu.crm",        "phone": "701234567", "gender": Gender.F, "speciality": Speciality.DATA,    "photo_url": ""},
-    {"id": 7, "matricule": "ENS-007", "name": "Thomas Moreau",    "email": "t.moreau@edu.crm",        "phone": "771234568", "gender": Gender.M, "speciality": Speciality.AI,      "photo_url": ""},
-    {"id": 8, "matricule": "ENS-008", "name": "Nadia Boulanger",  "email": "n.boulanger@edu.crm",     "phone": "789876544", "gender": Gender.F, "speciality": Speciality.NETWORK, "photo_url": ""},
-    {"id": 9, "matricule": "ENS-009", "name": "Paul Leclerc",     "email": "p.leclerc@edu.crm",       "phone": "764512891", "gender": Gender.M, "speciality": Speciality.WEB,     "photo_url": ""},
-]
-
-TEACHER_COURSES = {1: 2, 2: 4, 3: 3, 4: 2, 5: 1, 6: 3, 7: 2, 8: 1, 9: 4}
-
-
-# ── Routes ────────────────────────────────────────────────────────────────────
-
 @teachers_bp.route("/")
 def list():
     from flask import current_app
