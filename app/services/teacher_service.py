@@ -4,6 +4,8 @@ from app.models.gender import Gender
 from app.models.speciality import Speciality
 from datetime import date
 from app.extensions import db
+from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
 
 
 class TeacherService:
@@ -24,9 +26,15 @@ class TeacherService:
         teacher.dob = dob
         teacher.address = address
         teacher.phone = phone
-        db.session.add(teacher)
-        db.session.commit()
-        return teacher
+
+        try:
+            db.session.add(teacher)
+            db.session.commit()
+            return teacher
+        except IntegrityError as e:
+            db.session.rollback()  # ⚠️ indispensable, sinon la session est corrompue
+            raise e  # on laisse la route gérer l’affichage (erreur unique/email déjà existant)
+
 
     def listTeachers(
         self,
@@ -45,7 +53,7 @@ class TeacherService:
             q = q.filter(Teacher.gender == gender)
         if speciality:
             q = q.filter(Teacher.speciality == speciality)
-        return q.all()
+        return q.order_by(desc(Teacher.created_at)).all()
 
     def getById(self, id: int) -> Optional[Teacher]:
         return Teacher.query.get(id)

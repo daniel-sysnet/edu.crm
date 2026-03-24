@@ -2,6 +2,7 @@ from typing import Optional, List
 from app.extensions import db
 from app.models.course import Course
 from app.models.student import Student
+from sqlalchemy import desc
 
 class CourseService:
     def add_course(self, title: str, teacher_id: int) -> Course:
@@ -13,12 +14,13 @@ class CourseService:
 
     def list_courses(self, query: str = None) -> List[Course]:
         """Retourne la liste filtrée par titre ou code[cite: 226, 238]."""
+        stmt = Course.query
         if query:
-            return Course.query.filter(
+            stmt = stmt.filter(
                 (Course.title.ilike(f'%{query}%')) | 
                 (Course.code.ilike(f'%{query}%'))
-            ).all()
-        return Course.query.all()
+            )
+        return stmt.order_by(desc(Course.created_at)).all()
 
     def get_by_id(self, id: int) -> Optional[Course]:
         """Retourne un cours par son id[cite: 227]."""

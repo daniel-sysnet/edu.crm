@@ -44,6 +44,7 @@
     </div>
 
     {# ── Profil + déconnexion ── #}
+    {% if session_user %}
     <div class="flex-none flex items-center gap-6">
         <div class="flex items-center gap-4 pl-6 border-l border-white/10">
 
@@ -79,5 +80,6 @@
 
         </div>
     </div>
+    {% endif %}
 
 </nav>
