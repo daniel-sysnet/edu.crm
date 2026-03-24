@@ -12,10 +12,10 @@ class StudentService:
         student = Student(
             name=name,
             email=email,
-            genre=genre,
-            birthday=birthday,
-            adresse=adresse,
-            telephone=telephone
+            gender=gender,
+            dob=birthday,
+            address=adresse,
+            phone=telephone
         )
         db.session.add(student)
         db.session.commit()
