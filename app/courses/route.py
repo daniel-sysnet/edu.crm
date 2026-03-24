@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
-from app.services.course_service import CourseService
+from app.services.course__service import CourseService
 
 courses_bp = Blueprint("courses", __name__, url_prefix="/courses")
 course_service = CourseService()
@@ -30,7 +30,7 @@ def list():
 @courses_bp.route("/create", methods=["GET", "POST"])
 def create():
     """Formulaire et traitement de création de cours."""
-    from app.courses.forms import CourseForm
+    from app.courses.form import CourseForm
     form = CourseForm()
     
 
