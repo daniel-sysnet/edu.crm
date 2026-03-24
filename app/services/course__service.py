@@ -5,19 +5,16 @@ from app.models.student import Student
 
 class CourseService:
     def add_course(self, title: str, teacher_id: int) -> Course:
-        """Crée un cours et génère son code unique[cite: 97, 252]."""
-        # 1. Création initiale
+        """Crée un cours et génère son code unique[cite: 123, 219]."""
         new_course = Course(title=title, teacher_id=teacher_id)
         db.session.add(new_course)
-        db.session.flush() # Pour obtenir l'ID avant le commit
-        
-        # 2. Génération du code métier (ex: CRS-001)
+        db.session.flush() # Récupère l'ID pour le code
         new_course.code = Course.generate_code(new_course.id)
         db.session.commit()
         return new_course
 
     def list_courses(self, query: str = None) -> List[Course]:
-        """Retourne la liste filtrée par titre ou code[cite: 99, 354, 366]."""
+        """Retourne la liste filtrée par titre ou code[cite: 226, 238]."""
         if query:
             return Course.query.filter(
                 (Course.title.ilike(f'%{query}%')) | 
@@ -26,39 +23,53 @@ class CourseService:
         return Course.query.all()
 
     def get_by_id(self, id: int) -> Optional[Course]:
-        """Récupère un cours par sa clé primaire[cite: 355]."""
+        """Retourne un cours par son id[cite: 227]."""
         return Course.query.get(id)
 
     def get_by_code(self, code: str) -> Optional[Course]:
-        """Récupère un cours par son code (pour les URLs)[cite: 131]."""
+        """Récupère un cours par son code pour les routes[cite: 126]."""
         return Course.query.filter_by(code=code).first()
 
     def delete_course(self, id: int) -> bool:
-        """Supprime un cours de la base[cite: 94, 349, 366]."""
-        course = Course.query.get(id)
+        """Supprime un cours de la base[cite: 221]."""
+        course = self.get_by_id(id)
         if course:
             db.session.delete(course)
             db.session.commit()
             return True
         return False
 
+    def getCoursesByTeacher(self, teacher_id: int) -> List[Course]:
+        """Retourne tous les cours d'un enseignant via SQL[cite: 228, 238]."""
+        return Course.query.filter_by(teacher_id=teacher_id).all()
+
+    def deleteCoursesByTeacher(self, teacher_id: int) -> None:
+        """Supprime physiquement les cours d'un enseignant en base[cite: 222, 238]."""
+        courses = self.getCoursesByTeacher(teacher_id)
+        for c in courses:
+            db.session.delete(c)
+        db.session.commit()
+
     def assign_student_to_course(self, course_id: int, student_id: int) -> bool:
-        """Inscrit un étudiant à un cours (Relation M:N)[cite: 98, 352, 366]."""
-        course = Course.query.get(course_id)
+        """Inscrit un étudiant (Many-to-Many)[cite: 136, 224]."""
+        course = self.get_by_id(course_id)
         student = Student.query.get(student_id)
-        if course and student:
-            if student not in course.students:
-                course.students.append(student)
-                db.session.commit()
-                return True
+        if course and student and student not in course.students:
+            course.students.append(student)
+            db.session.commit()
+            return True
         return False
 
-    def count_courses(self) -> int:
-        """Nombre total de cours pour le Dashboard[cite: 112, 362]."""
-        return Course.query.count()
+    def countWithoutStudents(self) -> int:
+        """Compte les cours sans aucun inscrit[cite: 235, 238]."""
+        # On filtre les cours dont la relation 'students' est vide
+        return Course.query.filter(~Course.students.any()).count()
 
     def get_most_popular(self) -> Optional[Course]:
-        """Retourne le cours avec le plus d'étudiants[cite: 364, 366]."""
+        """Retourne le cours avec le plus d'étudiants[cite: 236, 238]."""
         courses = Course.query.all()
-        if not courses: return None
-        return max(courses, key=lambda c: len(c.students))
+        return max(courses, key=lambda c: len(c.students)) if courses else None
+
+    def count_courses(self) -> int:
+        """Nombre total de cours[cite: 234]."""
+        return Course.query.count()
