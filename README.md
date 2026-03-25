@@ -150,7 +150,7 @@ L'application sera accessible sur **http://127.0.0.1:5000**
 
 | Email | Mot de passe |
 |-------|-------------|
-| `admin@educrm.com` | `admin123` |
+| `admin@educrm.sn` | `admin123` |
 
 ---
 
