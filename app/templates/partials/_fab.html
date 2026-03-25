@@ -70,8 +70,6 @@
                 <span class="text-[13px] font-semibold text-white/75 group-hover:text-white transition-colors">Enseignant</span>
             </a>
 
-            <div class="fab-item mx-2 my-1 border-t border-white/[0.06]"></div>
-
             <a href="{{ url_for('courses.create') }}"
                class="fab-item fab-link flex items-center gap-3 pl-2 pr-4 py-2 rounded-lg
                       hover:bg-white/[0.07] transition-colors whitespace-nowrap group">
@@ -160,37 +158,71 @@
         onFooter = light;
         var links = nav.querySelectorAll('.fab-link');
         if (light) {
+            /* Panel : fond blanc, bordure sombre, ombre légère */
             body.classList.remove('bg-[#1C1C2E]/85','border-white/[0.08]','shadow-[0_8px_32px_rgba(0,0,0,.35)]');
-            body.classList.add('bg-white/85','border-black/[0.06]','shadow-[0_8px_32px_rgba(0,0,0,.10)]');
+            body.classList.add('bg-white','border-black/[0.12]','shadow-[0_8px_24px_rgba(0,0,0,.15)]');
+            /* Bouton + : texte sombre */
             btn.classList.remove('text-white/90','hover:text-white');
-            btn.classList.add('text-[#1C1C2E]','hover:text-[#1C1C2E]');
+            btn.classList.add('text-[#1C1C2E]','hover:text-slate-800');
+            /* Liens et icônes */
             links.forEach(function (a) {
-                a.classList.remove('hover:bg-white/[0.07]'); a.classList.add('hover:bg-black/[0.04]');
-                var lbl = a.querySelector('span:last-child');
-                if (lbl) { lbl.classList.remove('text-white/75','group-hover:text-white'); lbl.classList.add('text-[#1C1C2E]/70','group-hover:text-[#1C1C2E]'); }
+                a.classList.remove('hover:bg-white/[0.07]');
+                a.classList.add('hover:bg-slate-100');
+                /* Sélectionner le label (2e span) */
+                var spans = a.querySelectorAll('span');
+                if (spans.length >= 2) {
+                    var lbl = spans[spans.length - 1];
+                    lbl.classList.remove('text-white/75','group-hover:text-white');
+                    lbl.classList.add('text-slate-800','group-hover:text-slate-900');
+                    lbl.style.color = '#1f2937';
+                }
                 var iconBg = a.querySelector('.fab-icon-bg');
-                if (iconBg) { iconBg.classList.remove('bg-white/[0.15]'); iconBg.classList.add('bg-black/[0.06]'); }
+                if (iconBg) {
+                    iconBg.classList.remove('bg-white/[0.15]');
+                    iconBg.classList.add('bg-slate-200');
+                }
                 var iconEl = a.querySelector('.fab-icon-color');
-                if (iconEl) { iconEl.classList.remove('text-white'); iconEl.classList.add('text-[#1C1C2E]'); }
+                if (iconEl) {
+                    iconEl.classList.remove('text-white');
+                    iconEl.classList.add('text-slate-700');
+                    iconEl.style.color = '#374151';
+                }
             });
             var sep = body.querySelector('.border-white\\/\\[0\\.06\\]');
-            if (sep) { sep.classList.remove('border-white/[0.06]'); sep.classList.add('border-black/[0.06]'); }
+            if (sep) { sep.classList.remove('border-white/[0.06]'); sep.classList.add('border-slate-300'); }
         } else {
+            /* Panel : fond sombre, bordure claire, ombre profonde */
             body.classList.add('bg-[#1C1C2E]/85','border-white/[0.08]','shadow-[0_8px_32px_rgba(0,0,0,.35)]');
-            body.classList.remove('bg-white/85','border-black/[0.06]','shadow-[0_8px_32px_rgba(0,0,0,.10)]');
+            body.classList.remove('bg-white','border-black/[0.12]','shadow-[0_8px_24px_rgba(0,0,0,.15)]');
+            /* Bouton + : texte clair */
             btn.classList.add('text-white/90','hover:text-white');
-            btn.classList.remove('text-[#1C1C2E]','hover:text-[#1C1C2E]');
+            btn.classList.remove('text-[#1C1C2E]','hover:text-slate-800');
+            /* Liens et icônes */
             links.forEach(function (a) {
-                a.classList.add('hover:bg-white/[0.07]'); a.classList.remove('hover:bg-black/[0.04]');
-                var lbl = a.querySelector('span:last-child');
-                if (lbl) { lbl.classList.add('text-white/75','group-hover:text-white'); lbl.classList.remove('text-[#1C1C2E]/70','group-hover:text-[#1C1C2E]'); }
+                a.classList.add('hover:bg-white/[0.07]');
+                a.classList.remove('hover:bg-slate-100');
+                /* Rétablir le label blanc */
+                var spans = a.querySelectorAll('span');
+                if (spans.length >= 2) {
+                    var lbl = spans[spans.length - 1];
+                    lbl.classList.add('text-white/75','group-hover:text-white');
+                    lbl.classList.remove('text-slate-800','group-hover:text-slate-900');
+                    lbl.style.color = '';
+                }
                 var iconBg = a.querySelector('.fab-icon-bg');
-                if (iconBg) { iconBg.classList.add('bg-white/[0.15]'); iconBg.classList.remove('bg-black/[0.06]'); }
+                if (iconBg) {
+                    iconBg.classList.add('bg-white/[0.15]');
+                    iconBg.classList.remove('bg-slate-200');
+                }
                 var iconEl = a.querySelector('.fab-icon-color');
-                if (iconEl) { iconEl.classList.add('text-white'); iconEl.classList.remove('text-[#1C1C2E]'); }
+                if (iconEl) {
+                    iconEl.classList.add('text-white');
+                    iconEl.classList.remove('text-slate-700');
+                    iconEl.style.color = '';
+                }
             });
-            var sep = body.querySelector('.border-black\\/\\[0\\.06\\]');
-            if (sep) { sep.classList.remove('border-black/[0.06]'); sep.classList.add('border-white/[0.06]'); }
+            var sep = body.querySelector('.border-slate\\/300');
+            if (sep) { sep.classList.remove('border-slate-300'); sep.classList.add('border-white/[0.06]'); }
         }
     }
 
