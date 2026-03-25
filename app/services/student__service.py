@@ -52,4 +52,12 @@ class StudentService:
     def countStudents(self) -> int:
         return Student.query.count()
 
+    def countEnrolled(self) -> int:
+        """Compte les étudiants inscrits à au moins un cours."""
+        return Student.query.filter(Student.courses.any()).count()
+
+    def countWithoutCourses(self) -> int:
+        """Compte les étudiants sans cours."""
+        return Student.query.filter(~Student.courses.any()).count()
+
 student_service = StudentService()

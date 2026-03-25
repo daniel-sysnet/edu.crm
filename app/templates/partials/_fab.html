@@ -1,0 +1,244 @@
+{#
+    FAB — Bouton d'action rapide global
+    - Fermé  : cercle "+" 48×48
+    - Ouvert : le "+" disparaît, la capsule grandit vers le haut
+    - Fermeture : clic extérieur (immédiat) ou souris qui s'écarte (fondu progressif)
+#}
+
+<style>
+    /* Expansion du bloc */
+    #fab-body {
+        transition:
+            width  .35s cubic-bezier(.4,0,.2,1),
+            height .35s cubic-bezier(.4,0,.2,1),
+            border-radius .35s cubic-bezier(.4,0,.2,1),
+            opacity .3s ease,
+            background .3s, border-color .3s, box-shadow .3s;
+    }
+
+    /* Bouton + : fondu à l'ouverture */
+    #fab-btn {
+        transition: opacity .2s ease, transform .2s ease;
+    }
+    #fab-body.fab-open #fab-btn {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(.6);
+    }
+
+    /* Apparition échelonnée des liens */
+    .fab-item {
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity .22s ease, transform .22s ease;
+    }
+    #fab-body.fab-open .fab-item { opacity: 1; transform: translateY(0); }
+    #fab-body.fab-open .fab-item:nth-child(1) { transition-delay: .08s }
+    #fab-body.fab-open .fab-item:nth-child(2) { transition-delay: .14s }
+    #fab-body.fab-open .fab-item:nth-child(3) { transition-delay: .20s }
+    #fab-body.fab-open .fab-item:nth-child(4) { transition-delay: .26s }
+</style>
+
+<div id="fab-wrapper" class="fixed bottom-6 right-6 z-50">
+
+    <div id="fab-body"
+         class="relative rounded-full
+                bg-[#1C1C2E]/85 backdrop-blur-xl
+                border border-white/[0.08]
+                shadow-[0_8px_32px_rgba(0,0,0,.35)]
+                overflow-hidden"
+         style="width:48px; height:48px;">
+
+        {# ── Liens (invisibles au départ) ── #}
+        <nav id="fab-nav" class="pt-2 pb-4 px-2 pointer-events-none">
+
+            <a href="{{ url_for('students.create') }}"
+               class="fab-item fab-link flex items-center gap-3 pl-2 pr-4 py-2 rounded-lg
+                      hover:bg-white/[0.07] transition-colors whitespace-nowrap group">
+                <span class="fab-icon-bg w-8 h-8 rounded-lg bg-white/[0.15] flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined fab-icon-color text-white" style="font-size:17px">person_add</span>
+                </span>
+                <span class="text-[13px] font-semibold text-white/75 group-hover:text-white transition-colors">Étudiant</span>
+            </a>
+
+            <a href="{{ url_for('teachers.create') }}"
+               class="fab-item fab-link flex items-center gap-3 pl-2 pr-4 py-2 rounded-lg
+                      hover:bg-white/[0.07] transition-colors whitespace-nowrap group">
+                <span class="fab-icon-bg w-8 h-8 rounded-lg bg-white/[0.15] flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined fab-icon-color text-white" style="font-size:17px">school</span>
+                </span>
+                <span class="text-[13px] font-semibold text-white/75 group-hover:text-white transition-colors">Enseignant</span>
+            </a>
+
+            <a href="{{ url_for('courses.create') }}"
+               class="fab-item fab-link flex items-center gap-3 pl-2 pr-4 py-2 rounded-lg
+                      hover:bg-white/[0.07] transition-colors whitespace-nowrap group">
+                <span class="fab-icon-bg w-8 h-8 rounded-lg bg-white/[0.15] flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined fab-icon-color text-white" style="font-size:17px">auto_stories</span>
+                </span>
+                <span class="text-[13px] font-semibold text-white/75 group-hover:text-white transition-colors">Cours</span>
+            </a>
+
+        </nav>
+
+        {# ── Bouton + ── #}
+        <button id="fab-btn"
+                onclick="toggleFab()"
+                class="absolute inset-0 w-full h-full
+                       flex items-center justify-center
+                       text-white/90 hover:text-white
+                       cursor-pointer">
+            <span class="material-symbols-outlined" style="font-size:22px">add</span>
+        </button>
+
+    </div>
+</div>
+
+<script>
+(function () {
+    var wrapper    = document.getElementById('fab-wrapper');
+    var body       = document.getElementById('fab-body');
+    var nav        = document.getElementById('fab-nav');
+    var btn        = document.getElementById('fab-btn');
+    var isOpen     = false;
+    var onFooter   = false;
+    var leaveTimer = null;
+
+    var CLOSED_W = 48,  CLOSED_H = 48;
+    var OPEN_W   = 196, OPEN_H   = 172; /* 3 liens + séparateur, sans bouton */
+
+    function openPanel() {
+        if (isOpen) return;
+        isOpen = true;
+        clearTimeout(leaveTimer);
+        body.style.opacity     = '1';
+        body.style.width       = OPEN_W + 'px';
+        body.style.height      = OPEN_H + 'px';
+        body.style.borderRadius = '18px';
+        body.classList.add('fab-open');
+        nav.classList.remove('pointer-events-none');
+    }
+
+    function closePanel(instant) {
+        if (!isOpen) return;
+        isOpen = false;
+        clearTimeout(leaveTimer);
+        if (!instant) body.style.opacity = '0.0'; /* amorce le fondu */
+        body.style.width       = CLOSED_W + 'px';
+        body.style.height      = CLOSED_H + 'px';
+        body.style.borderRadius = '9999px';
+        body.classList.remove('fab-open');
+        nav.classList.add('pointer-events-none');
+        /* rétablir opacité après la transition */
+        setTimeout(function(){ body.style.opacity = '1'; }, 380);
+    }
+
+    window.toggleFab = function () {
+        isOpen ? closePanel(true) : openPanel();
+    };
+
+    /* Clic extérieur → fermeture immédiate */
+    document.addEventListener('click', function (e) {
+        if (isOpen && !wrapper.contains(e.target)) closePanel(true);
+    });
+
+    /* Souris qui s'écarte → fermeture progressive après délai court */
+    wrapper.addEventListener('mouseleave', function () {
+        if (isOpen) {
+            leaveTimer = setTimeout(function () { closePanel(false); }, 700);
+        }
+    });
+    wrapper.addEventListener('mouseenter', function () {
+        clearTimeout(leaveTimer);
+        if (!isOpen) body.style.opacity = '1';
+    });
+
+    /* ── Thème clair / sombre selon footer ── */
+    function applyTheme(light) {
+        onFooter = light;
+        var links = nav.querySelectorAll('.fab-link');
+        if (light) {
+            /* Panel : fond blanc, bordure sombre, ombre légère */
+            body.classList.remove('bg-[#1C1C2E]/85','border-white/[0.08]','shadow-[0_8px_32px_rgba(0,0,0,.35)]');
+            body.classList.add('bg-white','border-black/[0.12]','shadow-[0_8px_24px_rgba(0,0,0,.15)]');
+            /* Bouton + : texte sombre */
+            btn.classList.remove('text-white/90','hover:text-white');
+            btn.classList.add('text-[#1C1C2E]','hover:text-slate-800');
+            /* Liens et icônes */
+            links.forEach(function (a) {
+                a.classList.remove('hover:bg-white/[0.07]');
+                a.classList.add('hover:bg-slate-100');
+                /* Sélectionner le label (2e span) */
+                var spans = a.querySelectorAll('span');
+                if (spans.length >= 2) {
+                    var lbl = spans[spans.length - 1];
+                    lbl.classList.remove('text-white/75','group-hover:text-white');
+                    lbl.classList.add('text-slate-800','group-hover:text-slate-900');
+                    lbl.style.color = '#1f2937';
+                }
+                var iconBg = a.querySelector('.fab-icon-bg');
+                if (iconBg) {
+                    iconBg.classList.remove('bg-white/[0.15]');
+                    iconBg.classList.add('bg-slate-200');
+                }
+                var iconEl = a.querySelector('.fab-icon-color');
+                if (iconEl) {
+                    iconEl.classList.remove('text-white');
+                    iconEl.classList.add('text-slate-700');
+                    iconEl.style.color = '#374151';
+                }
+            });
+            var sep = body.querySelector('.border-white\\/\\[0\\.06\\]');
+            if (sep) { sep.classList.remove('border-white/[0.06]'); sep.classList.add('border-slate-300'); }
+        } else {
+            /* Panel : fond sombre, bordure claire, ombre profonde */
+            body.classList.add('bg-[#1C1C2E]/85','border-white/[0.08]','shadow-[0_8px_32px_rgba(0,0,0,.35)]');
+            body.classList.remove('bg-white','border-black/[0.12]','shadow-[0_8px_24px_rgba(0,0,0,.15)]');
+            /* Bouton + : texte clair */
+            btn.classList.add('text-white/90','hover:text-white');
+            btn.classList.remove('text-[#1C1C2E]','hover:text-slate-800');
+            /* Liens et icônes */
+            links.forEach(function (a) {
+                a.classList.add('hover:bg-white/[0.07]');
+                a.classList.remove('hover:bg-slate-100');
+                /* Rétablir le label blanc */
+                var spans = a.querySelectorAll('span');
+                if (spans.length >= 2) {
+                    var lbl = spans[spans.length - 1];
+                    lbl.classList.add('text-white/75','group-hover:text-white');
+                    lbl.classList.remove('text-slate-800','group-hover:text-slate-900');
+                    lbl.style.color = '';
+                }
+                var iconBg = a.querySelector('.fab-icon-bg');
+                if (iconBg) {
+                    iconBg.classList.add('bg-white/[0.15]');
+                    iconBg.classList.remove('bg-slate-200');
+                }
+                var iconEl = a.querySelector('.fab-icon-color');
+                if (iconEl) {
+                    iconEl.classList.add('text-white');
+                    iconEl.classList.remove('text-slate-700');
+                    iconEl.style.color = '';
+                }
+            });
+            var sep = body.querySelector('.border-slate\\/300');
+            if (sep) { sep.classList.remove('border-slate-300'); sep.classList.add('border-white/[0.06]'); }
+        }
+    }
+
+    /* Détection footer — écoute le conteneur scroll interne, pas window */
+    var footer      = document.querySelector('footer');
+    var scrollEl    = document.getElementById('page-scroll') || window;
+    if (footer) {
+        function checkOverlap() {
+            var fr = footer.getBoundingClientRect();
+            var wr = wrapper.getBoundingClientRect();
+            var ov = wr.bottom > fr.top && wr.top < fr.bottom;
+            if (ov !== onFooter) applyTheme(ov);
+        }
+        scrollEl.addEventListener('scroll', checkOverlap, { passive: true });
+        window.addEventListener('resize',   checkOverlap, { passive: true });
+        checkOverlap();
+    }
+})();
+</script>

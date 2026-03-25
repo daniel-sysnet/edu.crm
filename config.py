@@ -9,11 +9,12 @@ class Config:
     WTF_CSRF_ENABLED               = False
     APP_NAME                       = "Edu.CRM"
     APP_LOGO                       = "img/logo.png"
+    APP_LOGO_WHITE                 = "img/logo-white.png"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Pagination
-    PAGINATION_SIZES   = [5, 10, 25, 50, 100]
-    PAGINATION_DEFAULT = 5
+    PAGINATION_SIZES   = [5, 10, 20, 30]
+    PAGINATION_DEFAULT = PAGINATION_SIZES[0]
 
     # Téléphone
     PHONE_PREFIX = "+221"

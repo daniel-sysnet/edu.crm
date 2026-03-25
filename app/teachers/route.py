@@ -1,16 +1,17 @@
 from flask import Blueprint, render_template, request, url_for, redirect, flash, current_app
 from app.models.gender     import Gender
 from app.models.speciality import Speciality
-from app.services.teacher_service import TeacherService
+from app.services.teacher_service import teacher_service
 from app.utils.db_errors import handle_integrity_error
 from app.utils.show_more import paginate_show_more
+from app.auth.decorators import login_required
 from sqlalchemy.exc import IntegrityError
 
 teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
-teacher_service = TeacherService()
 
 
 @teachers_bp.route("/")
+@login_required
 def list():
     from flask import current_app
 
@@ -42,6 +43,7 @@ def list():
 
 
 @teachers_bp.route("/create", methods=["GET", "POST"])
+@login_required
 def create():
     from app.teachers.form import TeacherForm
     from flask import current_app, flash, redirect
@@ -69,6 +71,7 @@ def create():
 
 
 @teachers_bp.route("/<string:mat>")
+@login_required
 def detail(mat):
     teacher = teacher_service.getByMatricule(mat)
     if not teacher:
@@ -97,11 +100,13 @@ def detail(mat):
 
 
 @teachers_bp.route("/<int:id>/edit", methods=["GET", "POST"])
+@login_required
 def edit(id):
     return render_template("teachers/edit.html")
 
 
 @teachers_bp.route("/<int:id>/delete", methods=["POST"])
+@login_required
 def delete(id):
     from flask import flash
     if teacher_service.deleteTeacher(id):

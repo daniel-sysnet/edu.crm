@@ -14,16 +14,16 @@
     <div class="flex-none">
         <a href="{{ url_for('dashboard.index') }}">
             <img
-                src="{{ url_for('static', filename='img/logo.png') }}"
+                src="{{ url_for('static', filename=APP_LOGO_WHITE) }}"
                 alt="{{ APP_NAME }}"
-                class="h-10 w-auto object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity"
+                class="h-11 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
             />
         </a>
     </div>
 
     {# ── Liens de navigation ── #}
     <div class="flex-grow flex justify-center">
-        <div class="hidden md:flex items-center gap-8">
+        <div class="hidden md:flex items-center gap-2">
             {% set nav_items = [
                 ('dashboard', 'Dashboard',   'dashboard.index'),
                 ('students',  'Étudiants',   'students.list'),
@@ -33,9 +33,9 @@
             {% for blueprint, label, endpoint in nav_items %}
             <a
                 href="{{ url_for(endpoint) }}"
-                class="font-body font-medium text-sm transition-colors pb-1
-                       {{ 'text-white border-b-2 border-[#C8923A]' if active == blueprint
-                          else 'text-white/70 hover:text-white' }}"
+                class="font-body font-medium text-sm px-4 py-2 rounded-full transition-all duration-300
+                       {{ 'text-white bg-white/[0.15] shadow-sm' if active == blueprint
+                          else 'text-white/70 hover:text-white hover:bg-white/[0.08]' }}"
             >
                 {{ label }}
             </a>

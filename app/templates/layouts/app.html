@@ -1,21 +1,124 @@
 {% extends "base.html" %}
 
-{% block body_class %}bg-background-light font-body min-h-screen flex flex-col text-[#1C1C2E]{% endblock %}
+{% block body_class %}bg-background-light font-body h-screen overflow-hidden flex flex-col text-[#1C1C2E]{% endblock %}
 
 {% block body %}
 
-    {# Toasts flottants #}
+    {# Toasts flottants (position fixed — hors du flux) #}
     {% include "partials/_flash_toasts.html" %}
 
-    {# Navbar #}
+    {# Navbar — flex-none, hors de la zone scrollable #}
     {% include "partials/_navbar.html" %}
 
-    {# Contenu — chaque page gère son propre padding/max-width #}
-    <main class="flex-1 grid-pattern relative flex flex-col bg-white">
-        {% block content %}{% endblock %}
-    </main>
+    {# Zone scrollable : contenu + footer #}
+    <div id="scroll-wrapper" class="flex-1 relative overflow-hidden">
 
-    {# Footer #}
-    {% include "partials/_footer.html" %}
+        <div id="page-scroll" class="app-scroll h-full overflow-y-auto flex flex-col">
+            <main class="flex-1 grid-pattern relative flex flex-col bg-white">
+                {% block content %}{% endblock %}
+            </main>
+            {% include "partials/_footer.html" %}
+        </div>
+
+        {# Scrollbar custom — positionnée dans le wrapper, s'arrête avant le footer #}
+        <div id="scrollbar-track" class="custom-scrollbar-track">
+            <div id="scrollbar-thumb" class="custom-scrollbar-thumb"></div>
+        </div>
+
+    </div>
+
+    <script>
+    (function () {
+        var scroller = document.getElementById('page-scroll');
+        var track    = document.getElementById('scrollbar-track');
+        var thumb    = document.getElementById('scrollbar-thumb');
+        var footer   = scroller.querySelector('footer');
+        var dragging = false;
+        var dragStartY, dragStartScroll;
+        var hideTimer = null;
+
+        function update() {
+            var sH = scroller.scrollHeight;
+            var cH = scroller.clientHeight;
+            var sT = scroller.scrollTop;
+
+            /* Pas besoin de scrollbar si tout est visible */
+            if (sH <= cH) return;
+
+            /* Hauteur piste = wrapper - portion visible du footer */
+            var footerH       = footer ? footer.offsetHeight : 0;
+            var footerVisible = Math.max(0, cH - (sH - sT - footerH));
+            var trackH        = cH - footerVisible;
+
+            track.style.height = trackH + 'px';
+
+            var ratio    = cH / sH;
+            var thumbH   = Math.max(30, trackH * ratio);
+            var maxTop   = trackH - thumbH;
+            var scrollR  = sT / (sH - cH);
+
+            thumb.style.height = thumbH + 'px';
+            thumb.style.top    = (scrollR * maxTop) + 'px';
+        }
+
+        function showThumb() {
+            clearTimeout(hideTimer);
+            thumb.classList.add('visible');
+        }
+
+        function scheduleHide() {
+            if (dragging) return;
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(function () {
+                thumb.classList.remove('visible');
+            }, 1500);
+        }
+
+        scroller.addEventListener('scroll', function () {
+            update();
+            showThumb();
+            scheduleHide();
+        }, { passive: true });
+
+        track.addEventListener('mouseenter', showThumb);
+        track.addEventListener('mouseleave', scheduleHide);
+
+        window.addEventListener('resize', update, { passive: true });
+
+        /* Drag du pouce */
+        thumb.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            dragging = true;
+            dragStartY = e.clientY;
+            dragStartScroll = scroller.scrollTop;
+            thumb.classList.add('active');
+            document.body.style.userSelect = 'none';
+        });
+        document.addEventListener('mousemove', function (e) {
+            if (!dragging) return;
+            var ratio = (scroller.scrollHeight - scroller.clientHeight) / (track.offsetHeight - thumb.offsetHeight);
+            scroller.scrollTop = dragStartScroll + (e.clientY - dragStartY) * ratio;
+        });
+        document.addEventListener('mouseup', function () {
+            if (!dragging) return;
+            dragging = false;
+            thumb.classList.remove('active');
+            document.body.style.userSelect = '';
+            scheduleHide();
+        });
+
+        /* Clic sur la piste → scroll direct */
+        track.addEventListener('click', function (e) {
+            if (e.target === thumb) return;
+            var clickY = e.clientY - track.getBoundingClientRect().top;
+            scroller.scrollTop = (clickY / track.offsetHeight) * (scroller.scrollHeight - scroller.clientHeight);
+        });
+
+        update();
+    })();
+    </script>
+
+    {# FAB — position fixed, hors du conteneur scroll #}
+    {% include "partials/_fab.html" %}
 
 {% endblock %}

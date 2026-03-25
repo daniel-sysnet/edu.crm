@@ -1,7 +1,7 @@
 {% extends "layouts/app.html" %}
 
 {% from "macros/filters.html" import filter_bar %}
-{% from "macros/tables.html"  import table_header, empty_state, table_footer %}
+{% from "macros/tables.html"  import empty_state, table_footer %}
 {% from "macros/badges.html"  import id_badge %}
 {% from "macros/avatar.html"  import avatar %}
 
@@ -82,15 +82,14 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 border-b border-sand">
-                    {{ table_header("N°", "text-center") }}
-                    {{ table_header("Matricule") }}
-                    {{ table_header("Nom complet") }}
-                    {{ table_header("Email") }}
-                    {{ table_header("Numéro") }}
-                    {{ table_header("Genre", "text-right") }}
-                    {{ table_header("Spécialité", "text-center") }}
-                    {{ table_header("Cours") }}
-                    {{ table_header("Actions", "text-center") }}
+                    <th class="px-2 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body text-center w-10">N°</th>
+                    <th class="px-2 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body">Matricule</th>
+                    <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body">Nom complet</th>
+                    <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body">Email</th>
+                    <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body text-right w-24">Genre</th>
+                    <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body text-center w-28">Spécialité</th>
+                    <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body text-center w-16">Cours</th>
+                    <th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body text-center w-24">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-sand bg-white">
@@ -104,7 +103,7 @@
                         </td>
 
                         {# Matricule #}
-                        <td class="px-6 py-4">
+                        <td class="px-2 py-4">
                             {{ id_badge(t.matricule) }}
                         </td>
 
@@ -119,11 +118,6 @@
                         {# Email #}
                         <td class="px-6 py-4 text-sm text-slate-500 font-body">
                             {{ t.email }}
-                        </td>
-
-                        {# Téléphone #}
-                        <td class="px-6 py-4 text-sm text-slate-600">
-                            {{ t.phone | format_phone }}
                         </td>
 
                         {# Genre #}

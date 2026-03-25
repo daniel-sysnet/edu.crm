@@ -127,6 +127,39 @@
             text-orientation: mixed;
             transform: rotate(180deg);
         }
+
+        /* ── Masquer la scrollbar native ── */
+        .app-scroll { scrollbar-width: none; }
+        .app-scroll::-webkit-scrollbar { display: none; }
+
+        /* ── Scrollbar custom (piste + pouce) ── */
+        .custom-scrollbar-track {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px;
+            pointer-events: none;
+            z-index: 40;
+        }
+        .custom-scrollbar-thumb {
+            position: absolute;
+            right: 0;
+            width: 4px;
+            min-height: 30px;
+            border-radius: 4px;
+            background: #C8923A;
+            opacity: 0;
+            transition: opacity .3s ease;
+            cursor: grab;
+            pointer-events: auto;
+        }
+        .custom-scrollbar-thumb.visible {
+            opacity: 1;
+        }
+        .custom-scrollbar-thumb:hover,
+        .custom-scrollbar-thumb.active {
+            opacity: 1;
+        }
         .input-form {
             @apply bg-white border-b-2 border-sand border-t-0 border-l-0 border-r-0
                    focus:ring-0 focus:border-celadon rounded-none text-sm
@@ -138,9 +171,58 @@
         .section-title {
             @apply font-serif text-xl text-ink mb-6 flex items-center gap-3 border-b border-sand pb-2;
         }
+
+        /* ── Animation de chargement pour les icônes ── */
+        .icon-loading {
+            animation: iconPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes iconPulse {
+            0%, 100%   { opacity: 0.6; }
+            50%        { opacity: 1; }
+        }
     </style>
 
     {% block extra_head %}{% endblock %}
+
+    <script>
+    /* ── Loader pour les icônes Material Symbols (chargement externe) ── */
+    (function () {
+        function initIconLoaders() {
+            var icons = document.querySelectorAll('.material-symbols-outlined');
+            icons.forEach(function (icon) {
+                if (icon.textContent.trim() && !icon.classList.contains('icon-loading')) {
+                    icon.classList.add('icon-loading');
+
+                    /* Attendre que l'icône soit rendue (fallback 2.5s) */
+                    var timeout = setTimeout(function () {
+                        icon.classList.remove('icon-loading');
+                    }, 2500);
+
+                    /* Détecter quand la police Material Symbols est chargée */
+                    var checkInterval = setInterval(function () {
+                        var computedFont = window.getComputedStyle(icon).fontFamily;
+                        if (computedFont.indexOf('Material Symbols') !== -1) {
+                            clearTimeout(timeout);
+                            clearInterval(checkInterval);
+                            icon.classList.remove('icon-loading');
+                        }
+                    }, 100);
+                }
+            });
+        }
+
+        /* Initialiser au chargement du DOM */
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initIconLoaders);
+        } else {
+            initIconLoaders();
+        }
+
+        /* Réinitialiser après chaque navigation (AJAX/Turbo) */
+        window.addEventListener('load', initIconLoaders);
+        document.addEventListener('turbo:load', initIconLoaders);
+    })();
+    </script>
 </head>
 <body class="{% block body_class %}bg-warm-ivory font-body{% endblock %}">
     {% block body %}{% endblock %}
