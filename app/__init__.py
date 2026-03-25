@@ -14,11 +14,11 @@ def create_app(config_name="default"):
 
     # ── Import des modèles (nécessaire pour Flask-Migrate) ────────────────────
     with app.app_context():
-        from .models import User, Student, Teacher, Course  # noqa
+        from .models import User, Student, Teacher, Course
 
     # ── Enregistrement des mappings enum_ui ───────────────────────────────────
-    from .enum_ui import gender     # noqa
-    from .enum_ui import speciality # noqa
+    from .enum_ui import gender
+    from .enum_ui import speciality
 
     # ── Filtres Jinja2 ────────────────────────────────────────────────────────
     app.jinja_env.filters['ord'] = ord
@@ -35,8 +35,11 @@ def create_app(config_name="default"):
 
     @app.template_filter('format_phone')
     def format_phone_filter(number):
-        from .filters import format_phone
-        return format_phone(number)
+        prefix = app.config.get('PHONE_PREFIX', '+221')
+        n = str(number).strip()
+        if len(n) == 9:
+            return f"{prefix} {n[0:2]} {n[2:5]} {n[5:7]} {n[7:9]}"
+        return f"{prefix} {n}"
 
     @app.template_filter('format_date')
     def format_date_filter(value):
