@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from app.services.course__service import course_service
 from app.utils.show_more import paginate_show_more
+from app.auth.decorators import login_required
 
 courses_bp = Blueprint("courses", __name__, url_prefix="/courses")
 
 
 @courses_bp.route("/")
+@login_required
 def list():
     """Liste les cours."""
     q        = request.args.get("q", "").strip()
@@ -35,6 +37,7 @@ def list():
 
 
 @courses_bp.route("/create", methods=["GET", "POST"])
+@login_required
 def create():
     from app.courses.form import CourseForm
     from app.services.teacher_service import TeacherService
@@ -71,6 +74,7 @@ def create():
 
 
 @courses_bp.route("/<string:code>")
+@login_required
 def detail(code):
     course = course_service.get_by_code(code)
     if not course:
@@ -99,6 +103,7 @@ def detail(code):
 
 
 @courses_bp.route("/delete/<int:id>", methods=["POST"])
+@login_required
 def delete(id):
     """Suppression d'un cours."""
     if course_service.delete_course(id):
@@ -109,6 +114,7 @@ def delete(id):
 
 
 @courses_bp.route("/<string:code>/assign", methods=["GET", "POST"])
+@login_required
 def assign(code):
     """Inscription/affectation d'un étudiant au cours."""
     course = course_service.get_by_code(code)
@@ -159,6 +165,7 @@ def assign(code):
     return render_template("courses/assign.html", course=course)
 
 @courses_bp.route("/<string:code>/unassign/<int:student_id>", methods=["POST"])
+@login_required
 def unassign(code, student_id):
     """Désinscrit un étudiant d'un cours via son code."""
     course = course_service.get_by_code(code)

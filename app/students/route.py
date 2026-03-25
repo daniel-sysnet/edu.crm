@@ -2,10 +2,12 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app.models.gender import Gender
 from app.services.student__service import student_service
 from app.utils.show_more import paginate_show_more
+from app.auth.decorators import login_required
 
 students_bp = Blueprint("students", __name__, url_prefix="/students")
 
 @students_bp.route("/")
+@login_required
 def list():
     q = request.args.get("q", "").strip()
     gender = request.args.get("gender", "")
@@ -39,6 +41,7 @@ def list():
     )
 
 @students_bp.route("/create", methods=["GET", "POST"])
+@login_required
 def create():
     """Cette fonction manquait, c'est elle qui causait l'erreur 500 sur l'index."""
     from app.students.form import StudentForm
@@ -59,6 +62,7 @@ def create():
     return render_template("students/create.html", form=form)
 
 @students_bp.route("/<string:mat>")
+@login_required
 def detail(mat):
     """Affiche le détail via le matricule."""
     student = student_service.getByMatricule(mat)
@@ -86,6 +90,7 @@ def detail(mat):
     )
 
 @students_bp.route("/delete/<int:id>", methods=["POST"])
+@login_required
 def delete(id):
     """Supprime un étudiant par son ID en base de données."""
     from app.extensions import db
