@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="579b9eea-76af-4bf6-a40b-bf98936c7a0a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/app/templates/students/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/students/list.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/teachers/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/teachers/list.html" afterDir="false" />
-    </list>
+    <list default="true" id="579b9eea-76af-4bf6-a40b-bf98936c7a0a" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -31,9 +28,9 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
-    "git-widget-placeholder": "Reverting in main",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/ouedr/Work-Storage/Projets/edu.crm",
+    "last_opened_file_path": "C:/Users/ouedr/Work-Storage/Projets/edu.crm/app/static/img",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -43,6 +40,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ouedr\Work-Storage\Projets\edu.crm\app\static\img" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -62,6 +64,7 @@
       <workItem from="1772322928425" duration="52000" />
       <workItem from="1774243553925" duration="86000" />
       <workItem from="1774333733513" duration="335000" />
+      <workItem from="1774383156893" duration="10523000" />
     </task>
     <servers />
   </component>
