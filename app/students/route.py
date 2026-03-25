@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from app.students.student_service import student_service
-from app.models.gender import Genre
+from app.services.student__service import student_service
+from app.models.gender import Gender
 
 students_bp = Blueprint("students", __name__, url_prefix="/students")
 
@@ -12,13 +12,13 @@ def list():
     per_page = int(request.args.get("per_page", current_app.config["PAGINATION_DEFAULT"]))
     page     = int(request.args.get("page", 1))
 
-    genre_enum = None
+    gender_enum = None
     if gender == "M":
-        genre_enum = Genre.M
+        gender_enum = Gender.M
     elif gender == "F":
-        genre_enum = Genre.F
+        gender_enum = Gender.F
 
-    filtered = student_service.listStudents(q, genre_enum)
+    filtered = student_service.listStudents(q, gender_enum)
 
     total       = len(filtered)
     total_pages = max(1, -(-total // per_page))
@@ -46,12 +46,12 @@ def create():
     form = StudentForm()
 
     if form.validate_on_submit():
-        genre_enum = Genre.M if form.genre.data == "M" else Genre.F
+        gender_enum = Gender.M if form.genre.data == "M" else Gender.F
 
         student_service.addStudent(
             name=form.name.data,
             email=form.email.data,
-            genre=genre_enum,
+            gender=gender_enum,
             birthday=form.birthday.data,
             adresse=form.adresse.data,
             telephone=form.telephone.data
@@ -95,13 +95,13 @@ def edit(matricule):
     form = StudentForm(obj=student)
 
     if form.validate_on_submit():
-        genre_enum = Genre.M if form.genre.data == "M" else Genre.F
+        gender_enum = Gender.M if form.genre.data == "M" else Gender.F
 
         student_service.updateStudent(
             matricule=matricule,
             name=form.name.data,
             email=form.email.data,
-            genre=genre_enum,
+            gender=gender_enum,
             birthday=form.birthday.data,
             adresse=form.adresse.data,
             telephone=form.telephone.data

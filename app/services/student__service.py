@@ -1,72 +1,85 @@
 from datetime import date
 from typing import Optional
 from app.models.student import Student
-from app.models.gender import Genre
+from app.models.gender import Gender
+from app.extensions import db
 
 
 class StudentService:
     def __init__(self):
-        self.__students: list[Student] = []
-        self.__next_id = 1
+        pass
 
-    def addStudent(self, name: str, email: str, genre: Genre, birthday: date, adresse: str, telephone: str) -> Student:
+    def addStudent(self, name: str, email: str, gender: Gender, birthday: date, adresse: str, telephone: str) -> Student:
+        """Crée et ajoute un nouvel étudiant dans la base de données."""
         student = Student(
-            id=self.__next_id,
             name=name,
             email=email,
-            genre=genre,
-            birthday=birthday,
-            adresse=adresse,
-            telephone=telephone
+            gender=gender,
+            dob=birthday,
+            address=adresse,
+            phone=telephone
         )
-        self.__students.append(student)
-        self.__next_id += 1
+        
+        db.session.add(student)
+        db.session.commit()
         return student
 
     def deleteStudent(self, matricule: str) -> Optional[Student]:
+        """Supprime un étudiant par matricule."""
         student = self.getByMatricule(matricule)
         if student is None:
             return None
-        self.__students.remove(student)
+        
+        db.session.delete(student)
+        db.session.commit()
         return student
 
-    def updateStudent(self, matricule: str, name: str, email: str, genre: Genre, birthday: date, adresse: str, telephone: str) -> Optional[Student]:
+    def updateStudent(self, matricule: str, name: str, email: str, gender: Gender, birthday: date, adresse: str, telephone: str) -> Optional[Student]:
+        """Met à jour un étudiant existant par matricule."""
         student = self.getByMatricule(matricule)
         if student is None:
             return None
-
+        
         student.name = name
         student.email = email
-        student.genre = genre
-        student.birthday = birthday
-        student.adresse = adresse
-        student.telephone = telephone
-
+        student.gender = gender
+        student.dob = birthday
+        student.address = adresse
+        student.phone = telephone
+        
+        db.session.commit()
         return student
 
-    def listStudents(self, query: str = None, genre: Genre = None) -> list[Student]:
-        result = self.__students
+    def listStudents(self, query: str = None, gender: Gender = None) -> list[Student]:
+        """Liste tous les étudiants avec filtrage optionnel par recherche et genre."""
+        # Récupération de tous les étudiants depuis la base de données
+        students_query = Student.query
 
+        # Filtrage par recherche textuelle (nom, email, matricule)
         if query:
-            result = [s for s in result if
-                query.lower() in s.name.lower() or
-                query.lower() in s.email.lower() or
-                query.lower() in s.matricule.lower()
-            ]
+            search_pattern = f"%{query.lower()}%"
+            students_query = students_query.filter(
+                db.or_(
+                    Student.name.ilike(search_pattern),
+                    Student.email.ilike(search_pattern),
+                    Student.matricule.ilike(search_pattern)
+                )
+            )
 
-        if genre:
-            result = [s for s in result if s.genre == genre]
+        # Filtrage par genre
+        if gender:
+            students_query = students_query.filter(Student.gender == gender)
 
-        return result
+        # Retour sous forme de liste
+        return students_query.all()
 
     def getByMatricule(self, matricule: str) -> Optional[Student]:
-        for student in self.__students:
-            if student.matricule == matricule:
-                return student
-        return None
+        """Récupère un étudiant par son matricule."""
+        return Student.query.filter_by(matricule=matricule).first()
 
     def countStudents(self) -> int:
-        return len(self.__students)
+        """Compte le nombre total d'étudiants."""
+        return Student.query.count()
 
 
 student_service = StudentService()
