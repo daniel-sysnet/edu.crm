@@ -1,10 +1,8 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
-from app.services.course__service import CourseService
-from app.services.student__service import student_service
+from app.services.course__service import course_service
 from app.utils.show_more import paginate_show_more
 
 courses_bp = Blueprint("courses", __name__, url_prefix="/courses")
-course_service = CourseService()
 
 
 @courses_bp.route("/")

@@ -63,6 +63,10 @@ class TeacherService:
 
     def countWithoutCourses(self, course_service) -> int:
         return Teacher.query.filter(~Teacher.courses.any()).count()
+
+    def countActive(self) -> int:
+        """Compte les enseignants actifs (avec au moins un cours)."""
+        return Teacher.query.filter(Teacher.courses.any()).count()
     
     def getByMatricule(self, mat: str) -> Optional[Teacher]:
         return Teacher.query.filter_by(matricule=mat).first()
@@ -74,3 +78,5 @@ class TeacherService:
             db.session.commit()
             return teacher
         return None
+
+teacher_service = TeacherService()

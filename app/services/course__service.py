@@ -77,3 +77,5 @@ class CourseService:
     def count_courses(self) -> int:
         """Nombre total de cours[cite: 234]."""
         return Course.query.count()
+
+course_service = CourseService()

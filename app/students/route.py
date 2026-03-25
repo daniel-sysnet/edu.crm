@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-# On garde le nom exact de ton fichier service
-from app.services.student__service import student_service
 from app.models.gender import Gender
+from app.services.student__service import student_service
 from app.utils.show_more import paginate_show_more
 
 students_bp = Blueprint("students", __name__, url_prefix="/students")
