@@ -154,6 +154,20 @@ L'application sera accessible sur **http://127.0.0.1:5000**
 
 ---
 
+## 📈 Évolutions futures
+
+Ce projet a vocation à évoluer. Dans le futur, nous envisageons de :
+
+- **Déployer** l'application sur un serveur de production (Render, PythonAnywhere, etc.)
+- **Améliorer** les fonctionnalités existantes (rapports détaillés, exports, notifications)
+- **Ajouter** de nouvelles fonctionnalités (gestion des absences, notes, évaluations)
+- **Optimiser** la performance et la sécurité
+- **Étendre** les capacités d'intégration (APIs externes, webhooks)
+
+Les contributions et suggestions d'amélioration sont bienvenues ! 🚀
+
+---
+
 ## 🙏 Remerciements
 
 Nous tenons à remercier chaleureusement **Mr Aly**, notre enseignant, pour nous avoir confié ce projet. Son encadrement et ses conseils nous ont permis de mettre en pratique les concepts du développement web dans un contexte concret et formateur. Ce projet a été une expérience d'apprentissage enrichissante pour toute l'équipe.
