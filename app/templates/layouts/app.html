@@ -35,6 +35,7 @@
         var footer   = scroller.querySelector('footer');
         var dragging = false;
         var dragStartY, dragStartScroll;
+        var hideTimer = null;
 
         function update() {
             var sH = scroller.scrollHeight;
@@ -42,8 +43,7 @@
             var sT = scroller.scrollTop;
 
             /* Pas besoin de scrollbar si tout est visible */
-            if (sH <= cH) { thumb.style.opacity = '0'; return; }
-            thumb.style.opacity = '1';
+            if (sH <= cH) return;
 
             /* Hauteur piste = wrapper - portion visible du footer */
             var footerH       = footer ? footer.offsetHeight : 0;
@@ -61,7 +61,28 @@
             thumb.style.top    = (scrollR * maxTop) + 'px';
         }
 
-        scroller.addEventListener('scroll', update, { passive: true });
+        function showThumb() {
+            clearTimeout(hideTimer);
+            thumb.classList.add('visible');
+        }
+
+        function scheduleHide() {
+            if (dragging) return;
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(function () {
+                thumb.classList.remove('visible');
+            }, 1500);
+        }
+
+        scroller.addEventListener('scroll', function () {
+            update();
+            showThumb();
+            scheduleHide();
+        }, { passive: true });
+
+        track.addEventListener('mouseenter', showThumb);
+        track.addEventListener('mouseleave', scheduleHide);
+
         window.addEventListener('resize', update, { passive: true });
 
         /* Drag du pouce */
@@ -83,6 +104,7 @@
             dragging = false;
             thumb.classList.remove('active');
             document.body.style.userSelect = '';
+            scheduleHide();
         });
 
         /* Clic sur la piste → scroll direct */
