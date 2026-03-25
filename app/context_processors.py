@@ -10,6 +10,7 @@ def inject_globals():
     return {
         "APP_NAME":           current_app.config["APP_NAME"],
         "APP_LOGO":           current_app.config["APP_LOGO"],
+        "APP_LOGO_WHITE":     current_app.config["APP_LOGO_WHITE"],
         "current_year":       datetime.now().year,
         "PAGINATION_SIZES":   current_app.config["PAGINATION_SIZES"],
         "PAGINATION_DEFAULT": current_app.config["PAGINATION_DEFAULT"],

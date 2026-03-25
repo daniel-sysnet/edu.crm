@@ -9,6 +9,7 @@ class Config:
     WTF_CSRF_ENABLED               = False
     APP_NAME                       = "Edu.CRM"
     APP_LOGO                       = "img/logo.png"
+    APP_LOGO_WHITE                 = "img/logo-white.png"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Pagination
