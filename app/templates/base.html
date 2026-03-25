@@ -127,6 +127,39 @@
             text-orientation: mixed;
             transform: rotate(180deg);
         }
+
+        /* ── Masquer la scrollbar native ── */
+        .app-scroll { scrollbar-width: none; }
+        .app-scroll::-webkit-scrollbar { display: none; }
+
+        /* ── Scrollbar custom (piste + pouce) ── */
+        .custom-scrollbar-track {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px;
+            pointer-events: none;
+            z-index: 40;
+        }
+        .custom-scrollbar-thumb {
+            position: absolute;
+            right: 0;
+            width: 4px;
+            min-height: 30px;
+            border-radius: 4px;
+            background: #C8923A;
+            opacity: 0;
+            transition: opacity .3s ease;
+            cursor: grab;
+            pointer-events: auto;
+        }
+        .custom-scrollbar-thumb.visible {
+            opacity: 1;
+        }
+        .custom-scrollbar-thumb:hover,
+        .custom-scrollbar-thumb.active {
+            opacity: 1;
+        }
         .input-form {
             @apply bg-white border-b-2 border-sand border-t-0 border-l-0 border-r-0
                    focus:ring-0 focus:border-celadon rounded-none text-sm

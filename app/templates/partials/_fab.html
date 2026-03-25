@@ -194,8 +194,9 @@
         }
     }
 
-    /* Détection footer */
-    var footer = document.querySelector('footer');
+    /* Détection footer — écoute le conteneur scroll interne, pas window */
+    var footer      = document.querySelector('footer');
+    var scrollEl    = document.getElementById('page-scroll') || window;
     if (footer) {
         function checkOverlap() {
             var fr = footer.getBoundingClientRect();
@@ -203,8 +204,8 @@
             var ov = wr.bottom > fr.top && wr.top < fr.bottom;
             if (ov !== onFooter) applyTheme(ov);
         }
-        window.addEventListener('scroll', checkOverlap, { passive: true });
-        window.addEventListener('resize', checkOverlap, { passive: true });
+        scrollEl.addEventListener('scroll', checkOverlap, { passive: true });
+        window.addEventListener('resize',   checkOverlap, { passive: true });
         checkOverlap();
     }
 })();
