@@ -420,13 +420,13 @@
         <table class="w-full text-left border-collapse table-auto">
             <thead class="bg-white/50 backdrop-blur-md border-b border-sand">
                 <tr>
-                    <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">
+                    <th class="w-xs px-2 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">
                         N°
                     </th>
-                    <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                    <th class="w-1 px-3 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
                         Matricule
                     </th>
-                    <th class="w-full px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         Étudiant
                     </th>
                     <th class="w-1 px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
@@ -439,11 +439,11 @@
                 {% for student in students %}
                 <tr class="hover:bg-slate-50 transition-colors">
 
-                    <td class="px-6 py-4 text-sm font-mono text-slate-400 text-center whitespace-nowrap">
+                    <td class="px-2 py-4 text-sm font-mono text-slate-400 text-center whitespace-nowrap">
                         {{ loop.index }}
                     </td>
 
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-3 py-4 whitespace-nowrap">
                         {{ id_badge(student.matricule) }}
                     </td>
 
@@ -458,11 +458,24 @@
                         {{ gender_badge(student.gender) }}
                     </td>
 
-                    <td class="px-6 py-4 text-right whitespace-nowrap">
-                        <a href="{{ url_for('students.detail', mat=student.matricule) }}"
-                           class="text-slate-400 hover:text-[#C8923A] transition-colors">
-                            <span class="material-symbols-outlined">chevron_right</span>
-                        </a>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center justify-end gap-1">
+                            <form method="POST"
+                                  action="{{ url_for('courses.unassign', code=course_code, student_id=student.id) }}"
+                                  onsubmit="return confirm('Désinscrire {{ student.name }} de ce cours ?')">
+                                <button type="submit"
+                                        class="flex items-center justify-center w-8 h-8 rounded
+                                               text-red-400 hover:bg-red-50 transition-colors"
+                                        title="Désinscrire">
+                                    <span class="material-symbols-outlined" style="font-size:18px">person_remove</span>
+                                </button>
+                            </form>
+                            <a href="{{ url_for('students.detail', mat=student.matricule) }}"
+                               class="flex items-center justify-center w-8 h-8 rounded
+                                      text-slate-400 hover:text-[#C8923A] hover:bg-slate-50 transition-colors">
+                                <span class="material-symbols-outlined" style="font-size:18px">chevron_right</span>
+                            </a>
+                        </div>
                     </td>
 
                 </tr>

@@ -117,22 +117,7 @@ def assign(code):
     if not course:
         flash("Cours introuvable.", "danger")
         return redirect(url_for("courses.list"))
-
-    return render_template("courses/assign.html", course=course)
-
-@courses_bp.route("/<string:code>/unassign/<int:student_id>", methods=["POST"])
-def unassign(code, student_id):
-    """Désinscrit un étudiant d'un cours via son code."""
-    course = course_service.get_by_code(code)
-    if not course:
-        flash("Cours introuvable.", "danger")
-        return redirect(url_for("courses.list"))
-
-    if course_service.unassign_student_from_course(course.id, student_id):
-        flash("L'étudiant a été retiré du cours.", "success")
-    else:
-        flash("Erreur lors de la désinscription.", "danger")
-    return redirect(url_for("courses.detail", code=code))
+    
     if request.method == "POST":
         student_id = request.form.get("student_id", type=int)
         if course_service.assign_student_to_course(course.id, student_id):
@@ -173,3 +158,21 @@ def unassign(code, student_id):
         total_pages  = total_pages,
         q            = q,
     )
+    return render_template("courses/assign.html", course=course)
+
+@courses_bp.route("/<string:code>/unassign/<int:student_id>", methods=["POST"])
+def unassign(code, student_id):
+    """Désinscrit un étudiant d'un cours via son code."""
+    course = course_service.get_by_code(code)
+    if not course:
+        flash("Cours introuvable.", "danger")
+        return redirect(url_for("courses.list"))
+
+    if course_service.unassign_student_to_course(course.id, student_id):
+        flash("L'étudiant a été retiré du cours.", "success")
+    else:
+        flash("Erreur lors de la désinscription.", "danger")
+
+    # Revenir à la page d'origine (assign ou detail)
+    next_url = request.args.get("next") or url_for("courses.detail", code=code)
+    return redirect(next_url)
