@@ -1,51 +1,181 @@
 {% extends "base.html" %}
 
-{% block body_class %}bg-warm-ivory h-screen flex overflow-hidden font-sans{% endblock %}
+{% block body_class %}bg-warm-ivory font-sans h-screen overflow-hidden flex flex-col auth-layout{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Dégradé au-dessus du footer uniquement sur la page auth */
+    .auth-layout footer {
+        position: relative;
+    }
+    .auth-layout footer::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: linear-gradient(to bottom, transparent, #1C1C2E);
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
 
 {% block body %}
 
 {# Toasts flottants — haut droite, hors formulaire #}
 {% include "partials/_flash_toasts.html" %}
 
-{# ── Panneau gauche : illustration ── #}
-<div class="hidden lg:flex w-[40%] bg-deep-ink relative items-center justify-center overflow-hidden">
+<div id="scroll-wrapper" class="flex-1 relative overflow-hidden">
 
-    <img
-        src="{{ url_for('static', filename='img/auth-banner.png') }}"
-        alt="Edu.CRM illustration"
-        class="absolute inset-0 w-full h-full object-cover opacity-50"
-    />
+    <div id="page-scroll" class="app-scroll h-full overflow-y-auto flex flex-col">
 
-    <div class="absolute inset-0 bg-deep-ink/50"></div>
+        <div class="flex flex-1">
 
-    <div class="relative z-10 opacity-10 transform scale-150 rotate-12 pointer-events-none">
-        <img
-            src="{{ url_for('static', filename='img/logo.png') }}"
-            alt=""
-            class="w-80 h-auto object-contain brightness-0 invert"
-        />
+            {# ── Panneau gauche : illustration ── #}
+            <div class="hidden lg:flex w-[40%] bg-deep-ink relative items-center justify-center overflow-hidden">
+
+                <img
+                    src="{{ url_for('static', filename='img/auth-banner.png') }}"
+                    alt="Edu.CRM illustration"
+                    class="absolute inset-0 w-full h-full object-cover opacity-50"
+                />
+
+                <div class="absolute inset-0 bg-deep-ink/50"></div>
+
+                <div class="relative z-10 opacity-10 transform scale-150 rotate-12 pointer-events-none">
+                    <img
+                        src="{{ url_for('static', filename='img/logo.png') }}"
+                        alt=""
+                        class="w-80 h-auto object-contain brightness-0 invert"
+                    />
+                </div>
+
+                <div class="absolute bottom-10 left-10 z-10">
+                    <p class="text-white/30 font-serif text-lg tracking-widest">{{ APP_NAME }}</p>
+                </div>
+            </div>
+
+            {# ── Panneau droit : contenu auth ── #}
+            <div class="w-full lg:w-[60%] bg-warm-ivory relative flex flex-col items-center justify-center p-6 lg:p-12">
+
+                <div
+                    class="absolute inset-0 opacity-50 pointer-events-none z-0"
+                    style="
+                        background-image: linear-gradient(#E8E0D5 1px, transparent 1px),
+                                          linear-gradient(90deg, #E8E0D5 1px, transparent 1px);
+                        background-size: 40px 40px;
+                    "
+                ></div>
+
+                <div class="relative z-10 w-full max-w-md">
+                    {% block auth_content %}{% endblock %}
+                </div>
+            </div>
+
+        </div>
+
+        {# Footer — en bas #}
+        {% include "partials/_footer.html" %}
+
     </div>
 
-    <div class="absolute bottom-10 left-10 z-10">
-        <p class="text-white/30 font-serif text-lg tracking-widest">{{ APP_NAME }}</p>
+    {# Scrollbar custom #}
+    <div id="scrollbar-track" class="custom-scrollbar-track">
+        <div id="scrollbar-thumb" class="custom-scrollbar-thumb"></div>
     </div>
+
 </div>
 
-{# ── Panneau droit : contenu auth ── #}
-<div class="w-full lg:w-[60%] bg-warm-ivory relative flex flex-col items-center justify-center p-6 lg:p-12">
+<script>
+(function () {
+    var scroller = document.getElementById('page-scroll');
+    var track    = document.getElementById('scrollbar-track');
+    var thumb    = document.getElementById('scrollbar-thumb');
+    var footer   = scroller.querySelector('footer');
+    var dragging = false;
+    var dragStartY, dragStartScroll;
+    var hideTimer = null;
 
-    <div
-        class="absolute inset-0 opacity-50 pointer-events-none z-0"
-        style="
-            background-image: linear-gradient(#E8E0D5 1px, transparent 1px),
-                              linear-gradient(90deg, #E8E0D5 1px, transparent 1px);
-            background-size: 40px 40px;
-        "
-    ></div>
+    function update() {
+        var sH = scroller.scrollHeight;
+        var cH = scroller.clientHeight;
+        var sT = scroller.scrollTop;
 
-    <div class="relative z-10 w-full max-w-md">
-        {% block auth_content %}{% endblock %}
-    </div>
-</div>
+        /* Pas besoin de scrollbar si tout est visible */
+        if (sH <= cH) return;
+
+        /* Hauteur piste = wrapper - portion visible du footer */
+        var footerH       = footer ? footer.offsetHeight : 0;
+        var footerVisible = Math.max(0, cH - (sH - sT - footerH));
+        var trackH        = cH - footerVisible;
+
+        track.style.height = trackH + 'px';
+
+        var ratio    = cH / sH;
+        var thumbH   = Math.max(30, trackH * ratio);
+        var maxTop   = trackH - thumbH;
+        var scrollR  = sT / (sH - cH);
+
+        thumb.style.height = thumbH + 'px';
+        thumb.style.top    = (scrollR * maxTop) + 'px';
+    }
+
+    function showThumb() {
+        clearTimeout(hideTimer);
+        thumb.classList.add('visible');
+    }
+
+    function scheduleHide() {
+        if (dragging) return;
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function () {
+            thumb.classList.remove('visible');
+        }, 1500);
+    }
+
+    scroller.addEventListener('scroll', function () {
+        update();
+        showThumb();
+        scheduleHide();
+    }, { passive: true });
+
+    track.addEventListener('mouseenter', showThumb);
+    track.addEventListener('mouseleave', scheduleHide);
+
+    window.addEventListener('resize', update, { passive: true });
+
+    /* Drag du pouce */
+    thumb.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        dragging = true;
+        dragStartY = e.clientY;
+        dragStartScroll = scroller.scrollTop;
+        thumb.classList.add('active');
+        document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', function (e) {
+        if (!dragging) return;
+        var ratio = (scroller.scrollHeight - scroller.clientHeight) / (track.offsetHeight - thumb.offsetHeight);
+        scroller.scrollTop = dragStartScroll + (e.clientY - dragStartY) * ratio;
+    });
+    document.addEventListener('mouseup', function () {
+        if (!dragging) return;
+        dragging = false;
+        thumb.classList.remove('active');
+        document.body.style.userSelect = '';
+        scheduleHide();
+    });
+
+    /* Clic sur la piste → scroll direct */
+    track.addEventListener('click', function (e) {
+        if (e.target === thumb) return;
+        var clickY = e.clientY - track.getBoundingClientRect().top;
+        scroller.scrollTop = (clickY / track.offsetHeight) * (scroller.scrollHeight - scroller.clientHeight);
+    });
+
+    update();
+})();
+</script>
 
 {% endblock %}
