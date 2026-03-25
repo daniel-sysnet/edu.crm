@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="app/static/img/logo.png" alt="Edu.CRM" width="180" />
+  <img src="app/static/img/logo-white.png" alt="Edu.CRM" width="180" />
 </p>
 
 <h1 align="center">Edu.CRM</h1>
