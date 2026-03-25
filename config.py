@@ -19,14 +19,13 @@ class Config:
     PHONE_PREFIX = "+221"
 
     # ── Profil : "Afficher plus" (GET) ───────────────────────────────────────
-    # Affichage par défaut: 5
-    # Puis 3 clics max:
-    #   more=0 -> 5
-    #   more=1 -> 10
-    #   more=2 -> 30
-    #   more=3 -> tout
+    # Paliers cumulatifs : initial=5, puis +10, +20, tout
+    #   more=0 → 5
+    #   more=1 → 15  (5+10)
+    #   more=2 → 35  (5+10+20)
+    #   more=3 → tout
     PROFILE_LIST_INITIAL = 5
-    PROFILE_LIST_STEPS   = [5, 20, -1]
+    PROFILE_LIST_STEPS   = [10, 20, -1]
 
 
 class DevelopmentConfig(Config):

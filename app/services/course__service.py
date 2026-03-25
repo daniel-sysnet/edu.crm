@@ -52,7 +52,18 @@ class CourseService:
             db.session.commit()
             return True
         return False
-
+    
+    def unassign_student_to_course(self, course_id: int, student_id: int) -> bool:
+        """Désinscrit un étudiant d'un cours (Many-to-Many)."""
+        course = self.get_by_id(course_id)
+        student = Student.query.get(student_id)
+        
+        if course and student and student in course.students:
+            course.students.remove(student) 
+            db.session.commit()
+            return True
+        return False
+    
     def countWithoutStudents(self) -> int:
         """Compte les cours sans aucun inscrit[cite: 235, 238]."""
         # On filtre les cours dont la relation 'students' est vide

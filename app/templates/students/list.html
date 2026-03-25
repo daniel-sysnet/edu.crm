@@ -68,6 +68,7 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 border-b border-sand">
+                    {{ table_header("N°", "text-center") }}
                     {{ table_header("Matricule") }}
                     {{ table_header("Nom complet") }}
                     {{ table_header("Email") }}
@@ -81,6 +82,11 @@
                 {% if students %}
                     {% for s in students %}
                     <tr class="hover:bg-slate-50 transition-colors">
+
+                        {# N° #}
+                        <td class="px-4 py-4 text-sm font-mono text-slate-400 text-center">
+                            {{ (page - 1) * per_page + loop.index }}
+                        </td>
 
                         {# Matricule #}
                         <td class="px-4 py-4">
@@ -116,7 +122,7 @@
 
                         {# Nombre de cours #}
                         <td class="px-4 py-4 text-sm font-mono font-bold text-ink text-center">
-                            {{ s.course_count }}
+                            {{ s.courses | length }}
                         </td>
 
                         {# Actions #}

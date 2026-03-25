@@ -46,6 +46,7 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 border-b border-sand">
+                    {{ table_header("N°", "text-center") }}
                     {{ table_header("Code") }}
                     {{ table_header("Titre du cours") }}
                     {{ table_header("Enseignant") }}
@@ -57,6 +58,11 @@
                 {% if courses %}
                     {% for c in courses %}
                     <tr class="hover:bg-slate-50/50 transition-colors">
+
+                        {# N° #}
+                        <td class="px-6 py-4 text-sm font-mono text-slate-400 text-center">
+                            {{ (page - 1) * per_page + loop.index }}
+                        </td>
 
                         {# Code cours #}
                         <td class="px-6 py-4">
