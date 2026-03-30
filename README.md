@@ -137,7 +137,7 @@ pip install -r requirements.txt
 # 4. Initialiser la base de données
 flask db upgrade
 
-# 5. (Optionnel) Peupler avec des données fictives
+# 5. Peupler avec des données fictives (ajout du admin nécessaire pour un test ou ajout manuel sur la BD)
 flask seed
 
 # 6. Lancer l'application
