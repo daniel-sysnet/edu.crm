@@ -30,7 +30,7 @@
 
 | Membre | GitHub | Rôle |
 |--------|--------|------|
-| **Salim Taoufiq OUEDRAOGO** | [@DevByDelta](https://github.com/DevByDelta) | Lead Frontend · UI/UX · Intégration Tailwind · Logique model & UML |
+| **Salim Taoufiq OUEDRAOGO** | [@BySalim](https://github.com/BySalim) | Lead Frontend · UI/UX · Intégration Tailwind · Logique model & UML |
 | **Dauchez Daniel MOLOMBO AGOMA** | [@daniel-sysnet](https://github.com/daniel-sysnet) | Backend · Services métier · Logique CRUD |
 | **Ahmadou Bamba Momar CISSE** | [@KINGABMC](https://github.com/KINGABMC) | Lead Backend · Architecture Flask · Base de données |
 | **Christopher Macéan** | [@Macean-2001](https://github.com/Macean-2001) | Organisation · Sécurité · Organisation |
